@@ -3,6 +3,9 @@ sys.path.append('../') #allows us to import modules from dir one level aboe
 import pandas as pd
 from category_encoders.woe import WOEEncoder
 from models.predict_model import random
+from core import config
+from sklearn.preprocessing import RobustScaler
+from sklearn.feature_selection import SelectKBest
 
 df = pd.read_csv('../data/weatherAUS.csv',
                         skiprows=7,delimiter=",",
@@ -30,12 +33,6 @@ def random_sample_imputation(df):
 
 
 
-# handle outliers
-
-def outlier_handling(df,cols):
-
-
-
 
 #encode categorical features
 
@@ -54,17 +51,16 @@ def encode_cols(df,cols):
 
 
 
-#handle imbalanced target
-
-def resample(df,target):
-
-
 
 #scale features
 
+def scaler(df):
+   
+   sc = RobustScaler()
+   df_scaled = sc.fit_transform(df)
+   return df_scaled,sc 
 
 
 
 
 
-#feature selection
