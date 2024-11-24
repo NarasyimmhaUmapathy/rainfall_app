@@ -9,7 +9,7 @@ with sqlite3.connect("rainfall.db") as conn:
 
   
 # Load CSV data into Pandas DataFrame 
-stud_data = pd.read_csv('rainfall_data.csv',
+stud_data = pd.read_csv('weatherAUS.csv',
                         skiprows=7,delimiter=",",
                         encoding = 'ISO-8859-1') 
 # Write the data to a sqlite table 
