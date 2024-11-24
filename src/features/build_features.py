@@ -1,6 +1,7 @@
 import sys,os
 sys.path.append('../') #allows us to import modules from dir one level aboe
 import pandas as pd
+from category_encoders.woe import WOEEncoder
 from models.predict_model import random
 
 df = pd.read_csv('../data/weatherAUS.csv',
@@ -39,6 +40,16 @@ def outlier_handling(df,cols):
 #encode categorical features
 
 def encode_cols(df,cols):
+   
+  woe = WOEEncoder()
+  categorical_features = df.select_dtypes(include = ['object']).columns.tolist()
+  numerical_features = df.select_dtypes(include = ['float64']).columns.tolist()
+
+  df_encoded = woe.fit_transform()
+
+  #merge dataframs back
+
+  df_all = df.merge(df_encoded)
 
 
 
