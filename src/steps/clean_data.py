@@ -1,15 +1,25 @@
 import sys,os
-sys.path.append('../') #allows us to import modules from dir one level aboe
+sys.path.append('../') #allows us to import modules from dir one level above
 import pandas as pd
-from category_encoders.woe import WOEEncoder
-from models.predict_model import random
+#from category_encoders.woe import WOEEncoder
+from sklearn.preprocessing import TargetEncoder
 from core import config
 from sklearn.preprocessing import RobustScaler
 from sklearn.feature_selection import SelectKBest
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import FunctionTransformer
 
-df = pd.read_csv('../data/weatherAUS.csv',
+
+
+
+df_raw = pd.read_csv('../data/weatherAUS.csv',
                         skiprows=7,delimiter=",",
                         encoding = 'ISO-8859-1') 
+
+categorical_features = df_raw.select_dtypes(include = ['object']).columns.tolist()
+numerical_features = df_raw.select_dtypes(include = ['float64']).columns.tolist()
+
 
 # handle missing data
 
@@ -33,34 +43,25 @@ def random_sample_imputation(df):
 
 
 
-
 #encode categorical features
 
 def encode_cols(df,cols):
    
-  woe = WOEEncoder()
-  categorical_features = df.select_dtypes(include = ['object']).columns.tolist()
-  numerical_features = df.select_dtypes(include = ['float64']).columns.tolist()
+  target = TargetEncoder()
+  
 
-  df_encoded = woe.fit_transform()
+  encoded = target.fit_transform(X=df[categorical_features],y=df["RainTomorrow"])
+  df_encoded = pd.DataFrame(encoded,categorical_features)
 
   #merge dataframs back
 
-  df_all = df.merge(df_encoded)
+  df = pd.concat(df[numerical_features],df_encoded,axis=1)
 
 
 
-
-
-#scale features
-
-def scaler(df):
-   
-   sc = RobustScaler()
-   df_scaled = sc.fit_transform(df)
-   return df_scaled,sc 
-
-
+def main():
+    df_imputed = random_sample_imputation(df_raw)
+    df_encoded = encode_cols()
 
 
 

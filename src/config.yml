@@ -1,0 +1,64 @@
+random_state: 144
+features:
+  
+  - ave_flot_air_flow
+  - ave_flot_level
+  - iron_feed
+  - starch_flow
+  - amina_flow
+  - ore_pulp_flow
+  - ore_pulp_pH
+  - ore_pulp_density
+
+cat_features:
+  - 
+  -
+  -
+  -
+  -
+  -
+
+num_features:
+  -
+  -
+  
+  
+test_size: 0.3
+target: silica_concentrate
+
+grid_params:
+  - alpha
+  - solver
+  - tol
+
+max_iter: 20000  
+
+data: 
+  train_path: data/train.csv
+  test_path: data/test.csv
+
+train:
+  test_size: 0.2
+  random_state: 42
+  shuffle: true
+
+model:
+  name: GradientBoostingClassifier
+  params:
+     max_depth: null
+     n_estimators: 10
+  store_path: models/
+
+  name: RandomForestClassifier
+  params:
+     n_estimators: 50
+     max_depth: 10
+     random_state: 42
+  store_path: models/
+
+  
+scorer:
+
+  - f1_score
+  - precision_score
+  - recall_score
