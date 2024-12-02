@@ -11,16 +11,32 @@ features:
   - ore_pulp_density
 
 cat_features:
-  - 
-  -
-  -
-  -
-  -
-  -
+  - 'Location'
+  - 'WindGustDir'
+  - 'WindDir9am'
+  - 'WindDir3pm'
+  - 'RainToday'
+
 
 num_features:
-  -
-  -
+  - 'MinTemp'
+  - 'MaxTemp'
+  - 'Rainfall'
+  - 'Evaporation'
+  - 'Sunshine'
+  - 'WindGustSpeed'
+  - 'WindSpeed9am'
+  - 'WindSpeed3pm'
+  - 'Humidity9am'
+  - 'Humidity3pm'
+  - 'Pressure9am'
+  - 'Pressure3pm'
+  - 'Cloud9am'
+  - 'Cloud3pm'
+  - 'Temp9am'
+  - 'Temp3pm'
+  - 'month'
+  
   
   
 test_size: 0.3
@@ -43,18 +59,14 @@ train:
   shuffle: true
 
 model:
-  name: GradientBoostingClassifier
+  name: HistGradientBoostingClassifier
   params:
-     max_depth: null
-     n_estimators: 10
-  store_path: models/
-
-  name: RandomForestClassifier
-  params:
-     n_estimators: 50
+     learning_rate: 0.01
      max_depth: 10
-     random_state: 42
-  store_path: models/
+
+
+  store_path: ../models/
+
 
   
 scorer:

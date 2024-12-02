@@ -17,7 +17,7 @@ class Predictor:
 
     def load_config(self):
         import yaml
-        with open('config.yml', 'r') as config_file:
+        with open('../config.yml', 'r') as config_file:
             return yaml.safe_load(config_file)
         
     def load_model(self):
@@ -32,6 +32,8 @@ class Predictor:
     def evaluate_model(self, X_test, y_test):
         y_pred = self.pipeline.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred)
-        class_report = classification_report(y_test, y_pred)
+        #class_report = classification_report(y_test, y_pred)
         roc_auc = roc_auc_score(y_test, y_pred)
-        return accuracy, class_report, roc_auc
+        return accuracy, roc_auc
+    
+
