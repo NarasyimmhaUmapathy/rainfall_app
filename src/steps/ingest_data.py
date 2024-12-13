@@ -8,7 +8,7 @@ from models.random import random
 from sklearn.model_selection import train_test_split
 
 
-with open('../config.yml', 'r') as config_file:
+with open('./config.yml', 'r') as config_file:
     config =  yaml.safe_load(config_file.read())
 
 def ingest():
@@ -18,11 +18,11 @@ def ingest():
 
   
 # Load CSV data into Pandas DataFrame 
-    stud_data = pd.read_csv('../data/weatherAUS.csv',
+    stud_data = pd.read_csv('./data/weatherAUS.csv',
                         delimiter=",",
                         encoding = 'ISO-8859-1') 
     
-    test_data = pd.read_csv('../data/weatherAUS.csv',
+    test_data = pd.read_csv('./data/weatherAUS.csv',
                         delimiter=",",
                         encoding = 'ISO-8859-1')
 
@@ -40,7 +40,7 @@ def ingest():
 
 def load_data():
 
-    df = pd.read_csv('../data/weatherAUS.csv',
+    df = pd.read_csv('./data/weatherAUS.csv',
                         delimiter=",",
                         encoding = 'ISO-8859-1') 
     

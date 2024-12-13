@@ -5,10 +5,12 @@
 
 # predict incoming data with preprocessing pipeline and produce output
 
-import os
+import os,sys
+sys.path.append("../")
 import joblib
 from sklearn.metrics import accuracy_score, classification_report, roc_auc_score
-from ingest_data import load_data
+from models import random
+print(sys.path)
 
 
 class Predictor:
@@ -38,10 +40,3 @@ class Predictor:
         return accuracy, roc_auc
     
 
-train,test = load_data()
-predict = Predictor()
-model = predict.load_model()
-X,y = predict.feature_target_separator(test)
-print(X.info())
-scores = predict.evaluate_model(X,y)
-print(scores)

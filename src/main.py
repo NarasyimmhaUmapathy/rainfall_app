@@ -1,5 +1,4 @@
 import sys,os
-sys.path.append('../')
 
 import logging
 import yaml

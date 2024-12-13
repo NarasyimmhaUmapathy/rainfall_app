@@ -1,4 +1,5 @@
 import sys,os
+sys.path.append('../')
 import joblib
 import yaml
 
@@ -11,8 +12,6 @@ from sklearn.ensemble import RandomForestClassifier,GradientBoostingClassifier,H
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.impute import SimpleImputer
 import pandas as pd
-from ingest_data import load_data
-
 
 
 
@@ -28,7 +27,7 @@ class Trainer:
         self.pipeline = self.create_pipeline()
 
     def load_config(self):
-        with open('../config.yml', 'r') as config_file:
+        with open('./config.yml', 'r') as config_file:
             return yaml.safe_load(config_file.read())
         
     def create_pipeline(self):
@@ -71,12 +70,3 @@ class Trainer:
         model_file_path = os.path.join(self.model_path, 'model.pkl')
         joblib.dump(self.pipeline, model_file_path)
 
-
-
-
-trainer = Trainer()
-train,test = load_data()
-X,y = trainer.feature_target_separator(train)
-print(test.info())
-#trainer.train_model(X,y)
-#trainer.save_model()
