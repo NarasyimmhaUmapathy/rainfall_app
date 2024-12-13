@@ -8,6 +8,7 @@
 import os
 import joblib
 from sklearn.metrics import accuracy_score, classification_report, roc_auc_score
+from ingest_data import load_data
 
 
 class Predictor:
@@ -25,8 +26,8 @@ class Predictor:
         return joblib.load(model_file_path)
 
     def feature_target_separator(self, data):
-        X = data.iloc[:, :-1]
-        y = data.iloc[:, -1]
+        X = data.drop("RainTomorrow",axis=1)
+        y = data["RainTomorrow"]
         return X, y
 
     def evaluate_model(self, X_test, y_test):
@@ -37,3 +38,10 @@ class Predictor:
         return accuracy, roc_auc
     
 
+train,test = load_data()
+predict = Predictor()
+model = predict.load_model()
+X,y = predict.feature_target_separator(test)
+print(X.info())
+scores = predict.evaluate_model(X,y)
+print(scores)

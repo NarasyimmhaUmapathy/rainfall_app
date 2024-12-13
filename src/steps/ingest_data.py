@@ -1,6 +1,6 @@
 
 import sqlite3 ,csv
-import sys,os
+import sys,os,yaml
 sys.path.append('../')
 
 import pandas as pd
@@ -8,6 +8,8 @@ from models.random import random
 from sklearn.model_selection import train_test_split
 
 
+with open('../config.yml', 'r') as config_file:
+    config =  yaml.safe_load(config_file.read())
 
 def ingest():
     with sqlite3.connect("../data/rainfall.db") as conn:
@@ -48,7 +50,10 @@ def load_data():
     df["month"] = df["Date"].dt.month
     df["day"] = df["Date"].dt.weekday
 
+    df.dropna(inplace=True)
     df.drop("Date",axis=1,inplace=True)
+    df.drop(config["cat_features"],axis=1,inplace=True)
+    
 
     
     df_train = df.loc[:80000]
@@ -75,7 +80,6 @@ def random_sample_imputation(df):
         df.loc[df[var].isnull(), var] = random_sample_df
 
     return df
-
 
 
 

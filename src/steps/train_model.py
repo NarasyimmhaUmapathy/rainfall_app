@@ -13,11 +13,7 @@ from sklearn.impute import SimpleImputer
 import pandas as pd
 from ingest_data import load_data
 
-print(os.getcwd())
 
-rf = RandomForestClassifier()
-dtc = DecisionTreeClassifier()
-ridge = RidgeClassifier()
 
 
 
@@ -78,4 +74,9 @@ class Trainer:
 
 
 
-#drop na and cat features
+trainer = Trainer()
+train,test = load_data()
+X,y = trainer.feature_target_separator(train)
+print(test.info())
+#trainer.train_model(X,y)
+#trainer.save_model()
