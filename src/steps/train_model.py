@@ -2,13 +2,14 @@ import sys,os
 sys.path.append('../')
 import joblib
 import yaml
+import mlflow
+from ingest_data import load_data,clean
 
-from sklearn.preprocessing import TargetEncoder, RobustScaler
+from sklearn.preprocessing import TargetEncoder, RobustScaler,OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import RidgeClassifier
-from imblearn.pipeline import Pipeline 
 from sklearn.ensemble import RandomForestClassifier,GradientBoostingClassifier,HistGradientBoostingClassifier
-
+from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.impute import SimpleImputer
 import pandas as pd
@@ -35,8 +36,9 @@ class Trainer:
             transformers=[  
        # ("impute_categorical",SimpleImputer(strategy="most_frequent"),self.categorical_features),
         ('scale',RobustScaler(),self.numerical_features),
-        ("impute_numerical",SimpleImputer(),self.numerical_features)
-            ],remainder="passthrough"
+        ("impute_numerical",SimpleImputer(),self.numerical_features),
+        ("encoding_categorical_features",OneHotEncoder(),self.categorical_features)
+            ]
         )
 
         model_map = {
@@ -63,10 +65,21 @@ class Trainer:
         y = data["RainTomorrow"]
         return X, y
 
+    
+
     def train_model(self, X_train, y_train):
-        self.pipeline.fit(X_train, y_train)
+        pipeline = self.pipeline.fit(X_train, y_train)
+        return pipeline
+
+    
 
     def save_model(self):
         model_file_path = os.path.join(self.model_path, 'model.pkl')
         joblib.dump(self.pipeline, model_file_path)
+
+
+trainer = Trainer()
+
+train, test = load_data()
+pipe = trainer.create_pipeline()
 

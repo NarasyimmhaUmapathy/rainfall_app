@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/naras/OneDrive/Documents/datascientest_project/oct24_bmlops_int_weather/src/mlruns/857644572991439387/c71247d816a3485dbdbc05f3b5f2b15a/artifacts
+end_time: 1740989651702
+entry_point_name: ''
+experiment_id: '857644572991439387'
+lifecycle_stage: active
+run_id: c71247d816a3485dbdbc05f3b5f2b15a
+run_name: dashing-grouse-671
+run_uuid: c71247d816a3485dbdbc05f3b5f2b15a
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1740989651329
+status: 4
+tags: []
+user_id: naras

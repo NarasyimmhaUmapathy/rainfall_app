@@ -7,10 +7,16 @@
 
 import os,sys
 sys.path.append("../")
+import site
 import joblib
 from sklearn.metrics import accuracy_score, classification_report, roc_auc_score
-from models import random
-print(sys.path)
+#from models import random
+import mlflow
+from pathlib import Path 
+from site import addsitedir 
+
+
+#sys.path.append(str(Path(__file__).parent)/ 'src')
 
 
 class Predictor:
@@ -20,7 +26,7 @@ class Predictor:
 
     def load_config(self):
         import yaml
-        with open('../config.yml', 'r') as config_file:
+        with open('config.yml', 'r') as config_file:
             return yaml.safe_load(config_file)
         
     def load_model(self):

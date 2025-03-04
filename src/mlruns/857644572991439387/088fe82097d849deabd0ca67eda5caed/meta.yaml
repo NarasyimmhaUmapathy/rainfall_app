@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/naras/OneDrive/Documents/datascientest_project/oct24_bmlops_int_weather/src/mlruns/857644572991439387/088fe82097d849deabd0ca67eda5caed/artifacts
+end_time: 1740992083301
+entry_point_name: ''
+experiment_id: '857644572991439387'
+lifecycle_stage: active
+run_id: 088fe82097d849deabd0ca67eda5caed
+run_name: omniscient-swan-741
+run_uuid: 088fe82097d849deabd0ca67eda5caed
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1740992078129
+status: 4
+tags: []
+user_id: naras

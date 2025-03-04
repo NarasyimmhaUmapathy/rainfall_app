@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/naras/OneDrive/Documents/datascientest_project/oct24_bmlops_int_weather/src/mlruns/857644572991439387/62ab162cc0074102acb94a1c3576ad93/artifacts
+end_time: 1740990238294
+entry_point_name: ''
+experiment_id: '857644572991439387'
+lifecycle_stage: active
+run_id: 62ab162cc0074102acb94a1c3576ad93
+run_name: fun-carp-649
+run_uuid: 62ab162cc0074102acb94a1c3576ad93
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1740990238247
+status: 4
+tags: []
+user_id: naras

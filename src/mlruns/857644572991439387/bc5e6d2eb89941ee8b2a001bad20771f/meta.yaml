@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/naras/OneDrive/Documents/datascientest_project/oct24_bmlops_int_weather/src/mlruns/857644572991439387/bc5e6d2eb89941ee8b2a001bad20771f/artifacts
+end_time: 1740989297568
+entry_point_name: ''
+experiment_id: '857644572991439387'
+lifecycle_stage: active
+run_id: bc5e6d2eb89941ee8b2a001bad20771f
+run_name: overjoyed-conch-134
+run_uuid: bc5e6d2eb89941ee8b2a001bad20771f
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1740989296902
+status: 4
+tags: []
+user_id: naras

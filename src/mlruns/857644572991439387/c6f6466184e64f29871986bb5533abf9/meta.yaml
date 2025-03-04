@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/naras/OneDrive/Documents/datascientest_project/oct24_bmlops_int_weather/src/mlruns/857644572991439387/c6f6466184e64f29871986bb5533abf9/artifacts
+end_time: 1740990295776
+entry_point_name: ''
+experiment_id: '857644572991439387'
+lifecycle_stage: active
+run_id: c6f6466184e64f29871986bb5533abf9
+run_name: resilient-panda-772
+run_uuid: c6f6466184e64f29871986bb5533abf9
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1740990295482
+status: 4
+tags: []
+user_id: naras

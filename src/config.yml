@@ -16,6 +16,8 @@ cat_features:
   - 'WindDir9am'
   - 'WindDir3pm'
   - 'RainToday'
+  - 'WindGustDir'
+  - 'month'
 
 
 num_features:
@@ -35,7 +37,7 @@ num_features:
   - 'Cloud3pm'
   - 'Temp9am'
   - 'Temp3pm'
-  - 'month'
+
   
   
   

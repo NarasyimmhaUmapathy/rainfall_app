@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/naras/OneDrive/Documents/datascientest_project/oct24_bmlops_int_weather/src/mlruns/857644572991439387/39ec53172539494586718b275881127a/artifacts
+end_time: 1740989388511
+entry_point_name: ''
+experiment_id: '857644572991439387'
+lifecycle_stage: active
+run_id: 39ec53172539494586718b275881127a
+run_name: powerful-smelt-33
+run_uuid: 39ec53172539494586718b275881127a
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1740989388036
+status: 4
+tags: []
+user_id: naras
