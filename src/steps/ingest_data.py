@@ -3,8 +3,12 @@ import sqlite3 ,csv
 import sys,os,yaml
 sys.path.append('../')
 
-import pandas as pd
+import pandas as pd,numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import TargetEncoder, RobustScaler,OneHotEncoder,LabelEncoder
+from sklearn.feature_extraction import FeatureHasher
+
+
 from pathlib import Path
 
 
@@ -39,17 +43,13 @@ def ingest():
 # Close connection to SQLite database 
     conn.close() 
 
-def load_data():
+def data_split(df):
 
-    df = pd.read_csv('./data/weatherAUS.csv',
-                        delimiter=",",
-                        encoding = 'ISO-8859-1') 
-    
-
-    
+        
     df["Date"] = pd.to_datetime(df["Date"])
     df["month"] = df["Date"].dt.month
     df["day"] = df["Date"].dt.weekday
+    df["year"] = df["Date"].dt.year
 
     config = load_config()
 
@@ -58,16 +58,17 @@ def load_data():
     
 
     
-    df_train = df.loc[:80000]
-    df_test = df.loc[80001:]
+    df_train = df.loc[:40000]
+    df_test = df.loc[40001:80000]
+    df_ref = df.loc[80001:]
 
-    return df_train,df_test
+    return df_train,df_test.df_ref
 
-def clean(df):
+def clean():
 
-    trainer = Trainer()
-
-    config = trainer.load_config()
+    df = pd.read_csv('./data/weatherAUS.csv',
+                        delimiter=",",
+                        encoding = 'ISO-8859-1') 
 
 
     cols_with_missing_values = df.columns[df.isna().any()].tolist()
@@ -83,6 +84,27 @@ def clean(df):
 
     # replace the NA
         df.loc[df[var].isnull(), var] = random_sample_df
+
+    #encode location variable
+
+
+    target = TargetEncoder(target_type="binary")
+    label = LabelEncoder()
+
+    X = df["Location"].values.reshape(-1,1)
+    y = df["RainTomorrow"]
+
+    df_enc = target.fit_transform(X,y.ravel())
+    encoded_target = label.fit_transform(y)
+
+    array = np.array(df_enc)
+    array_target = np.array(encoded_target)
+
+    df["Location_encoded"] = pd.Series(array.flatten())
+    df["Target_encoded"] = pd.Series(array_target.flatten())
+
+    df.drop(["Location","RainTomorrow"],axis=1,inplace=True)
+
 
     return df
 

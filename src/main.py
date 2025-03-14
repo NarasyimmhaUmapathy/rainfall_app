@@ -4,10 +4,9 @@ from logs_records.logger import logging
 import yaml
 #import mlflow
 #import mlflow.sklearn
-from steps.ingest_data import load_data
+from steps.ingest_data import load_data,clean
 from steps.train_model import Trainer
 from steps.predict_model import Predictor
-from steps.clean_data import *
 from sklearn.metrics import classification_report
 import logging
 import yaml
@@ -88,8 +87,8 @@ def train_with_mlflow():
         logging.info("Model evaluation completed successfully")
         
         # Tags 
-        mlflow.set_tag('Model developer', 'prsdm')
-        mlflow.set_tag('preprocessing', 'OneHotEncoder, Standard Scaler, and MinMax Scaler')
+        mlflow.set_tag('Model','HistGradientBoostingClassifier')
+        mlflow.set_tag('preprocessing', 'TargetEncoder, Simple Imputer')
         
         # Log metrics
         model_params = config['model']['params']

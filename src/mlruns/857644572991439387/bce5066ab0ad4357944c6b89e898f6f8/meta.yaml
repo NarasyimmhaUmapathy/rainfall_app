@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/naras/OneDrive/Documents/datascientest_project/oct24_bmlops_int_weather/src/mlruns/857644572991439387/bce5066ab0ad4357944c6b89e898f6f8/artifacts
+end_time: 1741611184952
+entry_point_name: ''
+experiment_id: '857644572991439387'
+lifecycle_stage: active
+run_id: bce5066ab0ad4357944c6b89e898f6f8
+run_name: unruly-robin-450
+run_uuid: bce5066ab0ad4357944c6b89e898f6f8
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1741611181726
+status: 4
+tags: []
+user_id: naras
