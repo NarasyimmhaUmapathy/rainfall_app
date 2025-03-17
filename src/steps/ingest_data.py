@@ -6,14 +6,15 @@ sys.path.append('../')
 import pandas as pd,numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import TargetEncoder, RobustScaler,OneHotEncoder,LabelEncoder
-from sklearn.feature_extraction import FeatureHasher
+import category_encoders as ce
+
 
 
 from pathlib import Path
 
 
 def load_config() -> yaml:
-        with open('./config.yml', 'r') as config_file:
+        with open('../config.yml', 'r') as config_file:
             return yaml.safe_load(config_file.read())
 
 def ingest():
@@ -43,8 +44,36 @@ def ingest():
 # Close connection to SQLite database 
     conn.close() 
 
-def data_split(df):
+def make_dirs():
 
+    config = load_config()
+    home = config["directories"]["home"]
+    train_dir = config["directories"]["train"]
+    test_dir = config["directories"]["test"]
+    ref_dir = config["directories"]["ref"]
+
+    all_dirs = [train_dir,test_dir,ref_dir]
+    for a in all_dirs:
+        a = " ".join(str(x) for x in a)
+
+    
+
+
+    data = [train_dir,test_dir,ref_dir]
+    home_string = " ".join(str(x) for x in home)
+
+    for d in data:
+        aa = " ".join(str(x) for x in d)
+        os.makedirs(os.path.join(home_string,aa))
+
+
+
+
+def data_split():
+
+    df = pd.read_csv('../data/weatherAUS.csv',
+                        delimiter=",",
+                        encoding = 'ISO-8859-1') 
         
     df["Date"] = pd.to_datetime(df["Date"])
     df["month"] = df["Date"].dt.month
@@ -57,18 +86,32 @@ def data_split(df):
     df.drop("Date",axis=1,inplace=True)
     
 
+
     
     df_train = df.loc[:40000]
     df_test = df.loc[40001:80000]
     df_ref = df.loc[80001:]
 
-    return df_train,df_test.df_ref
+    train_file = 'train_data'
+    test_file = 'test_data'
+    ref_file = 'ref_data'
+    config = load_config()
+    home = config["directories"]["home"]
+    home_string = " ".join(str(x) for x in home)
+ 
 
-def clean():
+    
 
-    df = pd.read_csv('./data/weatherAUS.csv',
-                        delimiter=",",
-                        encoding = 'ISO-8859-1') 
+    df_train.to_csv(f'{home_string}/data/train/{train_file}.csv')
+    df_test.to_csv(f'{home_string}/data/test/{test_file}.csv')
+    df_ref.to_csv(f'{home_string}/data/ref/{ref_file}.csv')
+
+ 
+
+
+def impute_encode(df):
+
+    #use parquet, can scale for massive datasets or csv files
 
 
     cols_with_missing_values = df.columns[df.isna().any()].tolist()
@@ -89,19 +132,20 @@ def clean():
 
 
     target = TargetEncoder(target_type="binary")
-    label = LabelEncoder()
+    #woe = ce.WOEEncoder(cols=["Location"],random_state=144)
+    #label = LabelEncoder()
 
     X = df["Location"].values.reshape(-1,1)
     y = df["RainTomorrow"]
 
     df_enc = target.fit_transform(X,y.ravel())
-    encoded_target = label.fit_transform(y)
+    #encoded_target = label.fit_transform(y)
 
     array = np.array(df_enc)
-    array_target = np.array(encoded_target)
+    #array_target = np.array(encoded_target)
 
     df["Location_encoded"] = pd.Series(array.flatten())
-    df["Target_encoded"] = pd.Series(array_target.flatten())
+   #df["Target_encoded"] = pd.Series(array_target.flatten())
 
     df.drop(["Location","RainTomorrow"],axis=1,inplace=True)
 

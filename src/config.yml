@@ -1,4 +1,13 @@
 random_state: 144
+directories:
+    home:
+    - 'C:/daten/numapathy/Dokumente/networksecurity_project/oct24_bmlops_int_weather/src/'
+    train:
+    - 'data/train'
+    test:
+    - 'data/test'
+    ref:
+    - 'data/ref'
 target:
 
   - 'RainTomorrow'
@@ -10,7 +19,7 @@ cat_features:
   - 'WindDir9am'
   - 'WindDir3pm'
   - 'RainToday'
-  - 'month'
+
 
 
 num_features:
@@ -43,8 +52,9 @@ grid_params:
 max_iter: 20000  
 
 data: 
-  train_path: data/train.csv
-  test_path: data/test.csv
+  train_path: data/train/train_data.csv
+  test_path: data/test/test_data.csv
+  ref_path: data/ref/ref_data.csv
 
 
 model:
@@ -63,3 +73,6 @@ scorer:
   - f1_score
   - precision_score
   - recall_score
+
+train_test_ratio:
+  - 0.3
