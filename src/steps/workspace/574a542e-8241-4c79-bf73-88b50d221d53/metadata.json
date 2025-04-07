@@ -1,0 +1,98 @@
+{
+  "id": "574a542e-8241-4c79-bf73-88b50d221d53",
+  "name": "New Project",
+  "description": "Test project using Adult dataset.",
+  "dashboard": {
+    "name": "New Project",
+    "panels": [
+      {
+        "type": "evidently.ui.dashboards.reports.DashboardPanelCounter",
+        "id": "bdc5d023-757e-4657-8626-1cbcb77b08c9",
+        "title": "Census Income Dataset (Adult)",
+        "filter": {
+          "metadata_values": {},
+          "tag_values": [],
+          "include_test_suites": false
+        },
+        "size": 2,
+        "agg": "none",
+        "value": null,
+        "text": null
+      },
+      {
+        "type": "evidently.ui.dashboards.reports.DashboardPanelCounter",
+        "id": "35269f4d-d769-4e62-a0f2-c9a56d993013",
+        "title": "Model Calls",
+        "filter": {
+          "metadata_values": {},
+          "tag_values": [],
+          "include_test_suites": false
+        },
+        "size": 1,
+        "agg": "sum",
+        "value": {
+          "field_path": "current.number_of_rows",
+          "metric_id": "DatasetMissingValuesMetric",
+          "metric_fingerprint": null,
+          "metric_args": {},
+          "legend": "count"
+        },
+        "text": "count"
+      },
+      {
+        "type": "evidently.ui.dashboards.reports.DashboardPanelCounter",
+        "id": "1df0aa9a-f787-4475-a17a-96e62e1e2621",
+        "title": "Share of Drifted Features",
+        "filter": {
+          "metadata_values": {},
+          "tag_values": [],
+          "include_test_suites": false
+        },
+        "size": 1,
+        "agg": "last",
+        "value": {
+          "field_path": "share_of_drifted_columns",
+          "metric_id": "DatasetDriftMetric",
+          "metric_fingerprint": null,
+          "metric_args": {},
+          "legend": "share"
+        },
+        "text": "share"
+      },
+      {
+        "type": "evidently.ui.dashboards.reports.DashboardPanelPlot",
+        "id": "d7f8c642-b3de-45f4-b429-f191a51f55f2",
+        "title": "Dataset Quality",
+        "filter": {
+          "metadata_values": {},
+          "tag_values": [],
+          "include_test_suites": false
+        },
+        "size": 2,
+        "values": [
+          {
+            "field_path": "share_of_drifted_columns",
+            "metric_id": "DatasetDriftMetric",
+            "metric_fingerprint": null,
+            "metric_args": {},
+            "legend": "Drift Share"
+          },
+          {
+            "field_path": "current.share_of_missing_values",
+            "metric_id": "DatasetMissingValuesMetric",
+            "metric_fingerprint": null,
+            "metric_args": {},
+            "legend": "Missing Values Share"
+          }
+        ],
+        "plot_type": "line"
+      }
+    ],
+    "tabs": [],
+    "tab_id_to_panel_ids": {}
+  },
+  "team_id": null,
+  "date_from": null,
+  "date_to": null,
+  "created_at": "2025-04-04T11:37:29.099190"
+}

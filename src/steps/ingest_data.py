@@ -74,13 +74,14 @@ def data_split():
     df = pd.read_csv('../data/weatherAUS.csv',
                         delimiter=",",
                         encoding = 'ISO-8859-1') 
+    
+    #use GX to check data quality
         
     df["Date"] = pd.to_datetime(df["Date"])
     df["month"] = df["Date"].dt.month
     df["day"] = df["Date"].dt.weekday
     df["year"] = df["Date"].dt.year
 
-    config = load_config()
 
     df.dropna(inplace=True)
     df.drop("Date",axis=1,inplace=True)

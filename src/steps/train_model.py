@@ -9,7 +9,7 @@ from sklearn.preprocessing import TargetEncoder, RobustScaler,OneHotEncoder,Labe
 from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import RidgeClassifier
-from sklearn.ensemble import RandomForestClassifier,GradientBoostingClassifier,HistGradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier,AdaBoostClassifier,HistGradientBoostingClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.impute import SimpleImputer
@@ -17,68 +17,107 @@ from sklearn.metrics import f1_score,matthews_corrcoef,roc_auc_score
 import pandas as pd
 import category_encoders as ce
 import optuna
+from mlflow.tracking import MlflowClient
+from mlflow.models import infer_signature
+
+from mlflow.utils.mlflow_tags import MLFLOW_PARENT_RUN_ID
+import time
 
 
 class MLflow:
 
-    def __init__(self,experiment_name):
+    def __init__(self):
         self.config = self.load_config()
-        self.experiment_name = experiment_name
-        self.experiment_id = self.get_or_create_experiment()
-        self.model = self.initial_model()
-        self.model_name = self.config["model"]["name"]
-        self.local_model_path = self.config["model"]["store_path"]
-
-    def load_initial_model(self) -> joblib:
-
-        model_file_path = os.path.join(self.local_model_path,f'{self.model_name}.pkl')
-        model = joblib.load(model_file_path)
-        return model
+        self.model_name = self.config["model"]["model_name"]
+        self.trainer = Trainer()
+        self.champion_name = self.config["model"]["mlflow_name"]
 
 
-    def objective(self,trial):
-        with mlflow.start_run(nested=True):
-      # Define hyperparameters
-            params = {
-       
-          "booster": trial.suggest_categorical("booster", ["gbtree", "gblinear", "dart"]),
-          "lambda": trial.suggest_float("lambda", 1e-8, 1.0, log=True),
-          "alpha": trial.suggest_float("alpha", 1e-8, 1.0, log=True),
+        #self.local_model_path = self.config["model"]["store_path"]
+
+    
+    def load_config(self):
+        with open('./config.yml', 'r') as config_file:
+            return yaml.safe_load(config_file.read())
+
+
+    
+
+
+    def tuning(self,objective,experiment_id,run_name):
+
+
+        with mlflow.start_run(experiment_id=experiment_id,run_name=run_name,nested=True):
+  # Initialize the Optuna study
+            study = optuna.create_study(direction="maximize")
+
+  # Execute the hyperparameter optimization trials.
+  # Note the addition of the `champion_callback` inclusion to control our logging
+            study.optimize(objective, n_trials=50)
+
+            mlflow.log_params(study.best_params)
+            mlflow.log_metric("best f1 and maxwell coeff score", study.best_value)
+
+  # Log tags
+            mlflow.set_tags(
+        tags={
+          "project": "australia weather forecasting",
+          "optimizer_engine": "optuna",
+          "model_family": "sklearn",
+          "feature_set_version": 1,
             }
+    	        )
         
+        best_params = study.best_params
+        best_metrics = study.best_value
         
-            trainer = Trainer()
-            data = pd.read_csv(f'{trainer.home_string}/{self.config["data"]["train_path"]}')
-            
 
-            model = trainer.create_pipeline()
-            learning_rate = trial.suggest_uniform("lr",0.1,1)
-            max_iter = trial.suggest_uniform("max_iter",50,250)
-            max_depth = trial.suggest_uniform("max_depth",5,15)
+        return best_params,best_metrics
+    
 
-            model.fit(X_train,y_train)
-            y_pred = model.predict(X_test)
-            score = f1_score(y_pred,y_test)
+    def save_model(self,params,model_path:str,name:str)-> str:
 
 
-    def get_or_create_experiment(self,experiment_name):
+        trainer = self.trainer
+        model = self.trainer.create_pipeline()
+        X,y = trainer.load_data()
+        model.named_steps["model"].set_params(**params) 
+        model.fit(X,y)
 
-        if experiment := mlflow.get_experiment_by_name(experiment_name):
-            return experiment.experiment_id
-        else:
-            return mlflow.create_experiment(experiment_name)
-        
+        signature = infer_signature(X, model.predict(X))
+
+    #insert logging step
+
+
+    
+
+        model_info=mlflow.sklearn.log_model(
+      sk_model=model,
+      artifact_path=model_path,
+      input_example=X,
+      registered_model_name=name
+        )
+
+        return model_info.model_uri
     
 
 
 
+    
 
 class Trainer:
     def __init__(self):
         self.config = self.load_config()
         self.home_dir = self.config["directories"]["home"]
-        self.model_name = self.config["model"]["name"]
-        self.model_params = self.config['model']['params']
+        self.train_dir = self.config["directories"]["train"]
+        self.test_dir = self.config["directories"]["train"]
+
+        self.model_params = self.config["model"]["params"]
+        self.model_name = self.config["model"]["model_name"]
+        self.challenger_name = self.config["model"]["challenger_name"]
+
+        self.mlflow_name = self.config["model"]["mlflow_name"]
+
         self.model_path = self.config['model']['store_path']
         self.categorical_features = self.config['cat_features']
         self.numerical_features = self.config['num_features']
@@ -90,7 +129,7 @@ class Trainer:
         
 
     def load_config(self):
-        with open('../config.yml', 'r') as config_file:
+        with open('./config.yml', 'r') as config_file:
             return yaml.safe_load(config_file.read())
         
     def create_pipeline(self):
@@ -105,8 +144,7 @@ class Trainer:
 
         model_map = {
             'HistGradientBoostingClassifier': HistGradientBoostingClassifier,
-            'DecisionTreeClassifier': DecisionTreeClassifier,
-            'GradientBoostingClassifier': GradientBoostingClassifier
+            'AdaBoostClassifier':AdaBoostClassifier
         }
     
         model_class = model_map[self.model_name]
@@ -121,6 +159,21 @@ class Trainer:
  
 
         return pipeline
+    
+    def load_data(self):
+
+
+        home_string  = " ".join(str(x) for x in self.home_dir)
+        data_string =  " ".join(str(x) for x in self.train_dir)
+
+
+        data = pd.read_csv(f'{home_string}/{data_string}',index_col=0)
+
+        X,y = self.feature_target_separator(data)
+
+        return X,y
+
+
 
     def feature_target_separator(self, data):
         X = data.drop(self.config["target"],axis=1)
@@ -128,30 +181,7 @@ class Trainer:
         return X, y
     
     
- 
-
-    
-
-    def param_tuning(self,train_file:str):
-
-        mlflow.set_tracking_uri("http://localhost:8080")
-
-        experiment_name = "model_search_australian_weather"
-
-        mlflow_obj = MLflow()
-
-            
-        experiment_id = mlflow_obj.get_or_create_experiment(experiment_name)
-
-        mlflow.set_experiment(experiment_id=experiment_id)
-
-
-        # compare models with mlflow and log the metrics, then perform param tuning with optuna on final model
-        home_dir = self.home_dir
-        train_data = pd.read_csv(f'{home_dir}/data/train/{train_file}.csv')
-        X,y = self.feature_target_separator(train_data)
-        
-       
+      
 
     def save_model(self):
         model_file_path = os.path.join(self.model_path,f'{self.model_name}.pkl')
@@ -159,34 +189,15 @@ class Trainer:
 
 
 
-trainer = Trainer()
-model = trainer.create_pipeline()
-home_string  = " ".join(str(x) for x in trainer.home_dir)
 
 
-data = pd.read_csv(f'{home_string}data/train/train_data.csv',index_col=0)
-data_val = pd.read_csv(f'{home_string}data/test/test_data.csv',index_col=0)
+def get_or_create_experiment(experiment_name:str):
 
+        if experiment := mlflow.get_experiment_by_name(experiment_name):
+            return experiment.experiment_id
+        else:
+            return mlflow.create_experiment(experiment_name)
 
-X,y = trainer.feature_target_separator(data)
-
-def objective(trial):
-    learning_rate = trial.suggest_uniform("learning_rate",0.1,1)
-    max_depth = trial.suggest_int("max_depth",2,10)
-    max_features = trial.suggest_int("max_features",1,5)
-    max_bins = trial.suggest_int("max_bins",100,350)
-    
-    model = trainer.create_pipeline()
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.33, random_state=trainer.random_state,stratify=y)
-
-    model.fit(X_train, y_train)
-
-    score = f1_score(y_test,model.predict(X_test),pos_label="Yes")
-    return score
-##trainer.save_model()
-study = optuna.create_study(direction="maximize")
-study.optimize(objective, n_trials=100)
 
 
 

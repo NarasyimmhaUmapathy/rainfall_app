@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/daten/numapathy/Dokumente/networksecurity_project/oct24_bmlops_int_weather/src/steps/mlruns/0/0367543309064fb1932f253942547fa1/artifacts
+end_time: 1743246897485
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 0367543309064fb1932f253942547fa1
+run_name: gentle-lark-864
+run_uuid: 0367543309064fb1932f253942547fa1
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1743246897400
+status: 3
+tags: []
+user_id: numapathy

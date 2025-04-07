@@ -1,0 +1,6 @@
+artifact_location: file:///C:/daten/numapathy/Dokumente/networksecurity_project/oct24_bmlops_int_weather/src/steps/mlruns/766849901343185550
+creation_time: 1742214649335
+experiment_id: '766849901343185550'
+last_update_time: 1742214649335
+lifecycle_stage: active
+name: first run with optuna
