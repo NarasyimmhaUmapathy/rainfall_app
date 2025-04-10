@@ -61,7 +61,7 @@ if __name__=="__main__":
             maxwell_score:float = matthews_corrcoef(y_test,model.predict(X_test))
             precision_score:float = precision_score(y_test,model.predict(X_test))
             recall_score:float = recall_score(y_test,model.predict(X_test))
-            f1_score:float = f1_score(y_test,model.predict(X_test),pos_label="Yes")
+            f1:float = f1_score(y_test,model.predict(X_test),pos_label="Yes")
 
 
         #log each run to mlflow
