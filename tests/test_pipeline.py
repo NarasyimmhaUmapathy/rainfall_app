@@ -6,3 +6,11 @@ from oct24_bmlops_int_weather.src.utils import *
 
 
 tr = Trainer()
+model = tr.create_pipeline()
+
+conf = load_config()
+print(model.named_steps["model"])
+
+ff = 5
+
+assert ff == 4
