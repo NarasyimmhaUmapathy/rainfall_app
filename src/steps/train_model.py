@@ -3,7 +3,7 @@ sys.path.append('../')
 import joblib
 import yaml
 import mlflow
-from src.steps.ingest_data import *
+from oct24_bmlops_int_weather.src.steps.ingest_data import *
 
 from sklearn.preprocessing import TargetEncoder, RobustScaler,OneHotEncoder,LabelEncoder
 from sklearn.model_selection import train_test_split
@@ -24,7 +24,7 @@ from mlflow.utils.mlflow_tags import MLFLOW_PARENT_RUN_ID
 import time
 from dataclasses import dataclass,field
 from abc import ABC,abstractmethod
-from src.steps.utils import *
+from oct24_bmlops_int_weather.src.utils import *
 
 class Utils():
 
