@@ -7,14 +7,14 @@ import pandas as pd,numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import TargetEncoder, RobustScaler,OneHotEncoder,LabelEncoder
 import category_encoders as ce
+from src.steps.utils import *
 
 
 
-from pathlib import Path
 
 
 def load_config() -> yaml:
-        with open('../config.yml', 'r') as config_file:
+        with open(conf_path, 'r') as config_file:
             return yaml.safe_load(config_file.read())
 
 def ingest():
@@ -71,7 +71,7 @@ def make_dirs():
 
 def data_split():
 
-    df = pd.read_csv('../data/weatherAUS.csv',
+    df = pd.read_csv(raw_data_path,
                         delimiter=",",
                         encoding = 'ISO-8859-1') 
     
@@ -87,7 +87,7 @@ def data_split():
     df.drop("Date",axis=1,inplace=True)
     
 
-
+    #integrate test to prvent leakage, trian not being test etc
     
     df_train = df.loc[:40000]
     df_test = df.loc[40001:80000]
@@ -173,3 +173,4 @@ def random_sample_imputation(df):
 
     return df
 
+conf = load_config()

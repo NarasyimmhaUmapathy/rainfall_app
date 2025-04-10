@@ -1,4 +1,2 @@
-mlflow
-pyyaml
-scikit-learn
-optuna
+evidently
+nannyml

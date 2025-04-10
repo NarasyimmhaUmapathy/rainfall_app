@@ -6,32 +6,36 @@
 # predict incoming data with preprocessing pipeline and produce output
 
 import os,sys
+import pandas as pd
 sys.path.append("../")
 import site
 import joblib
-from sklearn.metrics import accuracy_score, classification_report, roc_auc_score
+from sklearn.metrics import accuracy_score, classification_report, roc_auc_score,matthews_corrcoef
 #from models import random
-import mlflow
+import mlflow,yaml
 from pathlib import Path 
 from site import addsitedir 
+from train_model import Trainer
+from dataclasses import dataclass,field
+from utils import *
 
 
 #sys.path.append(str(Path(__file__).parent)/ 'src')
 
 
-class Predictor:
+@dataclass
+class Predictor(Trainer):
     def __init__(self):
-        self.model_path = self.load_config()['model']['store_path']
-        self.pipeline = self.load_model()
 
-    def load_config(self):
-        import yaml
-        with open('config.yml', 'r') as config_file:
-            return yaml.safe_load(config_file)
+        self.model_path = os.path.join(home_dir,'steps/model.pkl')
+        self.model = self.load_model()
+        
         
     def load_model(self):
-        model_file_path = os.path.join(self.model_path, 'model.pkl')
-        return joblib.load(model_file_path)
+        
+        model = joblib.load(self.model_path)
+        return model
+    
 
     def feature_target_separator(self, data):
         X = data.drop("RainTomorrow",axis=1)
@@ -39,10 +43,12 @@ class Predictor:
         return X, y
 
     def evaluate_model(self, X_test, y_test):
-        y_pred = self.pipeline.predict(X_test)
-        accuracy = accuracy_score(y_test, y_pred)
+        y_pred = self.model.predict(X_test)
+        #accuracy = accuracy_score(y_test, y_pred)
         #class_report = classification_report(y_test, y_pred)
-        roc_auc = roc_auc_score(y_test, y_pred)
-        return accuracy, roc_auc
+        matthews_score = matthews_corrcoef(y_test, y_pred)
+        return matthews_score
     
+
+
 

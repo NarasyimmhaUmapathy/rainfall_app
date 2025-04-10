@@ -1,0 +1,48 @@
+artifact_path: models
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.11.9
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.6.1
+is_signature_from_type_hint: false
+mlflow_version: 2.20.4
+model_size_bytes: 7272844
+model_uuid: 8ed4ce6cb0174e1d9354f0d27f1bbc4b
+run_id: 8696849cf6ed418988a34bdd29415975
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "string", "name": "Location", "required": true}, {"type": "double",
+    "name": "MinTemp", "required": true}, {"type": "double", "name": "MaxTemp", "required":
+    true}, {"type": "double", "name": "Rainfall", "required": true}, {"type": "double",
+    "name": "Evaporation", "required": true}, {"type": "double", "name": "Sunshine",
+    "required": true}, {"type": "string", "name": "WindGustDir", "required": true},
+    {"type": "double", "name": "WindGustSpeed", "required": true}, {"type": "string",
+    "name": "WindDir9am", "required": true}, {"type": "string", "name": "WindDir3pm",
+    "required": true}, {"type": "double", "name": "WindSpeed9am", "required": true},
+    {"type": "double", "name": "WindSpeed3pm", "required": true}, {"type": "double",
+    "name": "Humidity9am", "required": true}, {"type": "double", "name": "Humidity3pm",
+    "required": true}, {"type": "double", "name": "Pressure9am", "required": true},
+    {"type": "double", "name": "Pressure3pm", "required": true}, {"type": "double",
+    "name": "Cloud9am", "required": true}, {"type": "double", "name": "Cloud3pm",
+    "required": true}, {"type": "double", "name": "Temp9am", "required": true}, {"type":
+    "double", "name": "Temp3pm", "required": true}, {"type": "string", "name": "RainToday",
+    "required": true}, {"type": "long", "name": "month", "required": true}, {"type":
+    "long", "name": "day", "required": true}, {"type": "long", "name": "year", "required":
+    true}]'
+  outputs: '[{"type": "string", "required": true}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2025-03-24 10:11:46.084315'

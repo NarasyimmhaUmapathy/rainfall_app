@@ -1,17 +1,16 @@
 random_state: 144
 directories:
     home:
-    - 'C:/daten/numapathy/Dokumente/networksecurity_project/oct24_bmlops_int_weather/src/'
+    - 'C:/daten/numapathy/Dokumente/networksecurity_project/oct24_bmlops_int_weather/src'
     train:
-    - 'data/train'
+    - 'data/train/train_data.csv'
     test:
-    - 'data/test'
+    - 'data/test/test_data.csv'
     ref:
-    - 'data/ref'
+    - 'data/ref/ref_data.csv'
 target:
 
   - 'RainTomorrow'
-  
 
 
 cat_features:
@@ -19,6 +18,7 @@ cat_features:
   - 'WindDir9am'
   - 'WindDir3pm'
   - 'RainToday'
+  - 'Location'
 
 
 
@@ -40,9 +40,7 @@ num_features:
   - 'Temp9am'
   - 'Temp3pm'
 
-  
-  
-  
+   
 
 grid_params:
   - alpha
@@ -58,13 +56,16 @@ data:
 
 
 model:
-  name: HistGradientBoostingClassifier
+  model_name: HistGradientBoostingClassifier
+  mlflow_name: weather_forecast_model
+  challenger_name : AdaBoostClassifier
+
   params:
      learning_rate: 0.01
      max_depth: 10
 
 
-  store_path: ../models/
+  store_path: steps/model.pkl
 
 
   
