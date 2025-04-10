@@ -37,7 +37,7 @@ from evidently.ui.dashboards import TestSuitePanelType
 from evidently.renderers.html_widgets import WidgetSize
 
 
-from utils import train_path,test_path,ref_path,home_dir,load_config
+from oct24_bmlops_int_weather.src.utils import train_path,test_path,ref_path,home_dir,load_config
 
 conf = load_config()
 
@@ -96,7 +96,8 @@ true_values = reference_data["RainTomorrow"]
 pred_values = model.predict(reference_data.drop("RainTomorrow",axis=1))
 
 
-values = {"time_col":time_col,
+values = {"month":month_col,
+          "year":year_col,
               "true_values":true_values,
               "pred_values":pred_values,
              # "metric_matthews":metric_matthews}
