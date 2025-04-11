@@ -70,7 +70,7 @@ if __name__=="__main__":
 
       
 
-        return maxwell_score,precision_score,recall_score,f1_score
+        return maxwell_score,precision_score,recall_score,f1
 
 
     best_params,metrics = mlflow_obj.tuning(objective,id,"run with max features param")

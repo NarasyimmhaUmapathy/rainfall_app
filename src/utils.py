@@ -20,7 +20,6 @@ conf_path = f'{home_dir}/{conf_dir}'
 
 def load_config():
         
-        conf_path = os.path.join(home_dir,'config.yml')
         with open(conf_path, 'r') as config_file:
             return yaml.safe_load(config_file.read())
 
