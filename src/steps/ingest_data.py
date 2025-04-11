@@ -13,10 +13,6 @@ from oct24_bmlops_int_weather.src.utils import *
 
 
 
-def load_config() -> yaml:
-        with open(conf_path, 'r') as config_file:
-            return yaml.safe_load(config_file.read())
-
 def ingest():
     with sqlite3.connect("./data/rainfall.db") as conn:
     # interact with database
