@@ -2,6 +2,7 @@ alembic==1.15.1
 annotated-types==0.7.0
 blinker==1.9.0
 cachetools==5.5.2
+category_encoders==2.8.1
 certifi==2025.1.31
 charset-normalizer==3.4.1
 click==8.1.8
