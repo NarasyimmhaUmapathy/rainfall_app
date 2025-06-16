@@ -1,0 +1,6 @@
+outs:
+- md5: ecc1567d4fc15674d853745e1f86b0c2.dir
+  size: 13192840
+  nfiles: 3
+  hash: md5
+  path: output_data
