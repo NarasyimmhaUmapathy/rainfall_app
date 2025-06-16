@@ -14,3 +14,5 @@ print(model.named_steps["model"])
 ff = 5
 
 assert ff == 5
+
+# test test and train data, which is used to monitor and train the model, on certain expectation.
