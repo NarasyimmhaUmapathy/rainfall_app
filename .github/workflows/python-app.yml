@@ -4,9 +4,10 @@
 name: Python application
 
 on:
-  [push]
+  push:
   #pull_request:
-    #branches: [ "master" ]
+    branches: [ "master" ]
+
 
 permissions:
   contents: read
@@ -17,7 +18,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
       with:
@@ -27,36 +27,14 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         if [ -f requirements_full.txt ]; then pip install -r requirements_full.txt; fi
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: black-action
+      uses: rickstaa/action-black@v1
+      with:
+        black_args: ". --check"
+
+    
     - name: Test with pytest
       run: |
         pytest
    
-      # Setup CML GitHub Action
-    - name: Setup CML
-      uses: iterative/setup-cml@v1
-
-  
-          
-    - name: Train model
-      run: |
-          python3 preprocess_dataset.py
-          python3 train.py
-
-    - name: Write CML report
-      env:
-          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-          # Add metrics data to markdown
-          cat metrics.json >> model_eval_report.md
-          
-          # Add confusion matrix plot to markdown
-          echo "![confusion matrix plot](./confusion_matrix.png)" >> model_eval_report.md
-
-          # Create comment from markdown report
-          cml comment create  model_eval_report.md
