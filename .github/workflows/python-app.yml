@@ -29,14 +29,11 @@ jobs:
         if [ -f requirements_full.txt ]; then pip install -r requirements_full.txt; fi
 
 
-    - name: check dirs 
-      run: |
-        ls 
     - name: black-action
       uses: rickstaa/action-black@v1
       
       with:
-        black_args: "../ --check"
+        black_args: "../../src/steps --check"
 
     
     - name: Test with pytest
