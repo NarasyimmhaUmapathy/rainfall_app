@@ -7,38 +7,53 @@ import pandas as pd,numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import TargetEncoder, RobustScaler,OneHotEncoder,LabelEncoder
 import category_encoders as ce
-from oct24_bmlops_int_weather.src.utils import *
+from utils import *
+from pathlib import Path
 
 
 
 
 
-def ingest():
-    with sqlite3.connect("./data/rainfall.db") as conn:
-    # interact with database
-        print(f"Opened SQLite database with version {sqlite3.sqlite_version} successfully.")
+def load_config() -> yaml:
+        with open(conf_path, 'r') as config_file:
+            return yaml.safe_load(config_file.read())
+        
+
+def path_maker(dirs:list):
+
+    config = load_config()
+    home = config["directories"]["home"]
+    home_string = " ".join(str(x) for x in home)
+
+
+    train_string  = " ".join(str(x) for x in dirs[0])
+
+
+
+
+
+   
+    train_path = f"{home_string}/{train_string}"
+
+
+
+    return train_path
+
+
+    
+
+def load_raw_data(train_path):
 
   
 # Load CSV data into Pandas DataFrame 
-    stud_data = pd.read_csv('./data/weatherAUS.csv',
+    train_df = pd.read_csv(train_path,
                         delimiter=",",
                         encoding = 'ISO-8859-1') 
     
-    test_data = pd.read_csv('./data/weatherAUS.csv',
-                        delimiter=",",
-                        encoding = 'ISO-8859-1')
 
-    
-# Write the data to a sqlite table 
-    stud_data.to_sql('rainfall', conn, if_exists='replace', index=False) 
-  
-# Create a cursor object 
-    cur = conn.cursor() 
-# Fetch and display result 
-    for row in cur.execute('SELECT * FROM rainfall LIMIT 20 '): 
-        print(row) 
-# Close connection to SQLite database 
-    conn.close() 
+    return train_df
+
+
 
 def make_dirs():
 
@@ -65,11 +80,15 @@ def make_dirs():
 
 
 
-def data_split():
 
-    df = pd.read_csv(raw_data_path,
+
+def data_split(input_train_data_path,output_paths):
+
+    df_raw = pd.read_csv(input_train_data_path,
                         delimiter=",",
                         encoding = 'ISO-8859-1') 
+    
+    df = impute_encode(df_raw)
     
     #use GX to check data quality
         
@@ -80,28 +99,31 @@ def data_split():
 
 
     df.dropna(inplace=True)
-    df.drop("Date",axis=1,inplace=True)
     
 
-    #integrate test to prvent leakage, trian not being test etc
+    #integrate test to prvent leakage, train not being test etc
     
-    df_train = df.loc[:40000]
-    df_test = df.loc[40001:80000]
-    df_ref = df.loc[80001:]
+    train_data = df.query("Date >= '2012-01-01' \
+                       and Date < '2016-05-01'")
+    test_data = df.query("Date >= '2016-05-01' \
+                       and Date < '2016-12-31'")
+    ref_data = df.query("Date >= '2017-01-01' \
+                       and Date < '2017-06-26'")
 
-    train_file = 'train_data'
-    test_file = 'test_data'
-    ref_file = 'ref_data'
-    config = load_config()
-    home = config["directories"]["home"]
-    home_string = " ".join(str(x) for x in home)
- 
+    # assert max date of train set is earlier than test set 
+    if train_data["Date"].max() > test_data["Date"].min():
+            raise AssertionError("max train date is greater than min test date!")
+    if test_data["Date"].max() > ref_data["Date"].min():
+            raise AssertionError("max test date is greater than min reference date!")
+
 
     
 
-    df_train.to_csv(f'{home_string}/data/train/{train_file}.csv')
-    df_test.to_csv(f'{home_string}/data/test/{test_file}.csv')
-    df_ref.to_csv(f'{home_string}/data/ref/{ref_file}.csv')
+    train_data.to_csv(f'{train_path}')
+    test_data.to_csv(f'{test_path}')
+    ref_data.to_csv(f'{ref_path}')
+
+    #logging that data has been split
 
  
 
@@ -130,43 +152,30 @@ def impute_encode(df):
 
     target = TargetEncoder(target_type="binary")
     #woe = ce.WOEEncoder(cols=["Location"],random_state=144)
-    #label = LabelEncoder()
+    label = LabelEncoder()
 
     X = df["Location"].values.reshape(-1,1)
     y = df["RainTomorrow"]
 
     df_enc = target.fit_transform(X,y.ravel())
-    #encoded_target = label.fit_transform(y)
+    encoded_target = label.fit_transform(y)
 
     array = np.array(df_enc)
-    #array_target = np.array(encoded_target)
+    array_target = np.array(encoded_target)
 
     df["Location_encoded"] = pd.Series(array.flatten())
-   #df["Target_encoded"] = pd.Series(array_target.flatten())
+    df["Target_encoded"] = pd.Series(array_target.flatten())
 
     df.drop(["Location","RainTomorrow"],axis=1,inplace=True)
 
+    #test output if everything have been encoded correctly and no NAs present
+
+
 
     return df
 
 
 
-def random_sample_imputation(df):
 
-    cols_with_missing_values = df.columns[df.isna().any()].tolist()
 
-    for var in cols_with_missing_values:
-
-    # extract a random sample
-        random_sample_df = df[var].dropna().sample(df[var].isnull().sum(),
-                                                  random_state=0)
-    # re-index the randomly extracted sample
-        random_sample_df.index = df[
-                df[var].isnull()].index
-
-    # replace the NA
-        df.loc[df[var].isnull(), var] = random_sample_df
-
-    return df
-
-conf = load_config()
+   
