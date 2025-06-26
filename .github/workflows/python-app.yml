@@ -25,13 +25,25 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest
+        pip install flake8 pytest ruff
         if [ -f requirements_full.txt ]; then pip install -r requirements_full.txt; fi
 
+    # Install Ruff
 
-
-    
-    - name: Test with pytest
+    - name: Code checking with ruff
       run: |
-        pytest ./src/steps
+
+        ruff check .
+        ruff fix .
+
+    - uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: 'style fixes by ruff'
+
+
+    - name: Retrain model
+      run: |
+        
+        src/steps/retraining.py
+        
    
