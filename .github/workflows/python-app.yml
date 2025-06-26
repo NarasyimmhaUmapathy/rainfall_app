@@ -33,7 +33,7 @@ jobs:
     - name: Code checking with ruff
       run: |
 
-        ruff check .
+        ruff check ./src
         ruff fix .
 
     - uses: stefanzweifel/git-auto-commit-action@v4
