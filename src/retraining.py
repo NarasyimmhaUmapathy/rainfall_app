@@ -6,6 +6,7 @@
 from steps.train_model import MLflow,Trainer
 from steps.ingest_data import *
 from steps.predict_model import Model
+from monitor import feature_metrics
 import mlflow
 from mlflow.tracking import MlflowClient
 from mlflow.models import infer_signature
@@ -13,7 +14,7 @@ from sklearn.metrics import f1_score,matthews_corrcoef,roc_auc_score,make_scorer
 from sklearn.ensemble import AdaBoostClassifier
 import logging
 from datetime import datetime
-
+import joblib
 
 from mlflow.utils.mlflow_tags import MLFLOW_PARENT_RUN_ID
 
@@ -38,23 +39,45 @@ id = mlflow_object.get_or_create_experiment("australian_weather")
 
 
 
-def retrain_model(current_model_name,new_model_name,cv_splits:int):
+def retrain_model(data:pd.DataFrame):
 
-    
-    logging.info(f"loading model with name: {current_model_name} and version: Staging from mlflow registry")
-    model_current = mlflow.sklearn.load_model(f"models:/{current_model_name}/Staging")
-
-    
-    logging.info(f"evaluating model with cross validation")
-
-    eval_scores = evaluator.evaluate_model(model_current,test_path,cv_splits)
-    if eval_scores[2] > 0.5: #load from config
-        evaluator.update_model(model_current,train_path,new_model_name)
-        return True
+    date_time = datetime.today().strftime('%Y-%m-%d')
+    model_name = evaluator.registered_model
+    logging.info(f"loading model with name: {model_name} and version: Staging from mlflow registry")
+    try:
+        model_current = mlflow.sklearn.load_model(f"models:/{model_name}/Staging")
+    except ImportError as e:
+        logging.warning(f"model with name {model_name} could not be loaded")
         
-    else:
-        logging.info("retrained model did not clear threshold score")
-        return False
+    #model_current = joblib.load(f"{model_path}")
+    logging.info(f"evaluating model with cross validation ")
+
+
+    f1_score,recall_score = evaluator.evaluate_model(model_current,data)
+
+    with mlflow.start_run(experiment_id=id, run_name=f'retraining_{date_time}'):           
+
+        f1_score,recall_score = evaluator.evaluate_model(model_current,data)
+        logging.info(f"test validation score is {f1_score}]")
+
+        metrics = {"f1":f1_score,"recall":recall_score}
+        mlflow.log_metrics(metrics)
+
+        if f1_score > 0.5:               
+
+            evaluator.update_model(model_current,prod_processed_path)
+            latest_versions = mlflow_client.get_latest_versions(model_name, stages=["None"])
+            latest_model_version = latest_versions[0].version
+            mlflow_client.transition_model_version_stage(evaluator.registered_model,
+                                                         latest_model_version,
+                                                         "Staging",archive_existing_versions=True)
+            logging.info(f"model {evaluator.registered_model} with version {latest_model_version} transitioned to staging")
+            return True     
+        
+        else:
+            logging.info("retrained model did not clear threshold score")
+
+            return False
     
 def objective(trial):
         
@@ -104,7 +127,7 @@ def parameter_tuning(run_name):
 
     mlflow_client = mlflow.tracking.MlflowClient(
     tracking_uri=tracking_server_url)
-    experiment_details = mlflow.get_experiment_by_name("australian_weather")
+    experiment_details = mlflow.get_experiment_by_name("rainfall_prediction")
     id = experiment_details.experiment_id
 
    
@@ -133,59 +156,31 @@ def parameter_tuning(run_name):
 
 
 
+### main retraining function on feature drift ###
+def main():
 
-def main(updated_model_name):
- pass
+    report = feature_metrics(15)[1]
+    
+    dataset_drift = report.as_dict()["metrics"][0]["result"]["dataset_drift"]
+    drift_share = report.as_dict()["metrics"][0]["result"]["share_of_drifted_columns"]
 
+    if dataset_drift:
+        logging.warning(f"dataset drift detected,{drift_share*100}% of total columns have drifted")
+        print("dada")
 
-    #retrain model, validate and updte if validation passes
-  #  if retrain_model("test_monitoring",updated_model_name,5):
-    # tune and update model params with best params
-   #     logging.info("performing hyperparameter tuning")
-    #    best_params,metrics = parameter_tuning()
-     #   evaluator.update_params(best_params,"models",updated_model_name)
-      #  logging.info("updated model parameters in mlflow")
+        if retrain_model():
+            logging.info("Model retraining completed")
+            print("model retraining completed")
+
+        else:
+            logging.warning("Model retraining failed!")
+            print("model retraining failed")
+    else:
+        print(f"drift share of features was {drift_share},no retraining need")
+    
+
 
    
 if "__main__" == __name__:
-    date_time = datetime.today().strftime('%Y-%m-%d')
-    model_uri = f"models:/{evaluator.registered_model}/1"
-    #model = mlflow.sklearn.load_model(model_uri)
-    mlflow_client.transition_model_version_stage(evaluator.registered_model,2,
-                                                         "Staging",archive_existing_versions=True)
-         
-    sys.exit()
-    
-    model_current = mlflow.sklearn.load_model(f"models:/{evaluator.registered_model}/Staging")
-    scores = evaluator.evaluate_model(model_current,test_path,5)
-    if scores["test_f1_score"].mean() > 0.5:
 
-
-        with mlflow.start_run(experiment_id=id, run_name=f'retraining_{date_time}'):
-
-            logging.info("loading registered model from mlflow in main.py")
-
-
-      #mlflow.log_metric("mean cv f1 score",scores["test_f1_score"].mean())
-      #mlflow.log_metric("mean cv recall score",scores["test_recall_score"].mean())
-      #mlflow.log_metric("mean cv precision score",scores["test_precision_score"].mean())
-
-               
-            logging.info("updating registered model with new production data and registering new version in mlflow")
-            #evaluator.update_model(model_current,train_dir,test_dir)
-           
-
-
-      #log feature importances
-
-      
-
-
-
-
-    
-
-
-
-
-
+    main()

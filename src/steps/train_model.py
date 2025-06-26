@@ -13,7 +13,9 @@ from sklearn.ensemble import RandomForestClassifier,AdaBoostClassifier,HistGradi
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.impute import SimpleImputer
-from sklearn.metrics import f1_score,matthews_corrcoef,roc_auc_score
+from sklearn.model_selection import StratifiedKFold,cross_validate
+
+from sklearn.metrics import f1_score,matthews_corrcoef,roc_auc_score,make_scorer,recall_score
 import pandas as pd
 import category_encoders as ce
 import optuna
@@ -24,7 +26,17 @@ from mlflow.utils.mlflow_tags import MLFLOW_PARENT_RUN_ID
 import time
 from dataclasses import dataclass,field
 from abc import ABC,abstractmethod
-from utils import *
+from steps.utils import *
+import logging
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename=f'{home_dir}/logs/training_pipeline.log', encoding='utf-8', level=logging.INFO,
+                    format='%(asctime)s %(filename)s->%(funcName)s():%(lineno)s %(message)s ')
+
+
+
+
+
 
 class Utils():
 
@@ -33,6 +45,8 @@ class Utils():
           self.home_dir = home_dir
           self.train_dir = train_path
           self.test_dir = test_path
+          self.model_path = model_path
+          self.preprocessor_path = preprocessor_path
        
           self.categorical_features = self.config['cat_features']
           self.numerical_features = self.config['num_features']
@@ -48,7 +62,15 @@ class Utils():
     def feature_target_separator(self,data):
         X = data.drop(self.target,axis=1)
         y = data[self.target]
-        return X, y
+        return X,y
+
+    @staticmethod
+    def return_metrics():
+       
+        f1_metric = make_scorer(f1_score)
+        recall_metric = make_scorer(recall_score)
+
+        return f1_metric,recall_metric
     
     def load_data(self,path):
 
@@ -59,6 +81,8 @@ class Utils():
 
         data = pd.read_csv(f'{path}',index_col=0)
 
+
+   
         X,y = self.feature_target_separator(data)
 
         return X,y
@@ -70,44 +94,136 @@ class Utils():
 class Trainer(Utils):
     def __init__(self):
         super().__init__()
+        self.sklearn_model = self.config["model"]["model_name"]
+        self.mlflow_model = self.config["model"]["registered_model"]
+        self.model_params = self.config["model"]["params"]
   
 
         pipeline = field(default_factory=self.create_pipeline())
+
  
 
     def create_pipeline(self):
-        processor = ColumnTransformer(     
-            transformers=[  
-       # ("impute_categorical",SimpleImputer(strategy="most_frequent"),self.categorical_features),
-        ('scale',RobustScaler(),self.numerical_features),
-        ("impute_numerical",SimpleImputer(),self.numerical_features),
-        ("encoding_categorical_features",TargetEncoder(),self.categorical_features)
+
+        ### Function which return column transformers and end model for predictions ###
+
+        numeric_transformer = Pipeline(
+            steps=[("imputer", SimpleImputer(strategy="median")), ("scaler", RobustScaler())]
+            )
+
+        categorical_transformer = Pipeline(
+            steps=[
+        ("encoder", TargetEncoder())
             ]
-        )
+            )
+
+        preprocessor = ColumnTransformer(
+            transformers=[
+        ("num", numeric_transformer, self.config["num_features"]),
+        ("cat", categorical_transformer, self.config["cat_features"]),
+        ]   
+            )
 
         model_map = {
             'HistGradientBoostingClassifier': HistGradientBoostingClassifier,
             'AdaBoostClassifier':AdaBoostClassifier
         }
     
-        model_class = model_map[self.model_name]
-        model = model_class(**self.model_params)
+        model_class = model_map[self.sklearn_model]
+        model = model_class(**self.model_params)  
 
-
-        pipeline = Pipeline([
-        ('processor',processor),
-        ('model',model)
-        ])
+        model = HistGradientBoostingClassifier()
         
- 
 
-        return pipeline
+        return preprocessor,model
     
-
-
+    
     def save_model(self):
-        model_file_path = os.path.join(self.model_path,f'{self.model_name}.pkl')
-        joblib.dump(self.pipeline, model_file_path)
+
+        logging.info("starting mlflow server from ")
+        mlflow.set_tracking_uri(uri="http://127.0.0.1:5000")
+        tracking_server_url = mlflow.set_tracking_uri(uri="http://127.0.0.1:5000")
+
+        mlflow.set_experiment("rainfalL_prediction")
+        mlflow_client = mlflow.tracking.MlflowClient(
+        tracking_uri=tracking_server_url)
+
+        preprocessor,model = self.create_pipeline()
+
+
+        train_data = pd.read_csv(f'{train_path}',index_col=0)
+                                 
+        test_data = pd.read_csv(f'{train_path}',index_col=0)
+
+        X_train = train_data.drop(["Date","month","day","year","Target_encoded"],axis=1)
+        y_train = train_data[self.target]
+        preprocessor.fit(X_train,y_train)
+
+        X_train_tr = preprocessor.transform(X_train)
+
+
+        X_test = test_data.drop("Target_encoded",axis=1)
+        y_test = test_data["Target_encoded"]
+        X_test_tr = preprocessor.transform(X_test)
+ 
+        f1_metric = make_scorer(f1_score)
+        recall_metric = make_scorer(recall_score)
+
+
+        model.fit(X_train_tr,y_train)
+
+        metrics = { "recall_score": recall_metric,"f1_score":f1_metric}
+
+        sfold = StratifiedKFold(n_splits=10,random_state=self.random_state,shuffle=True)
+        logging.info("performing cross validation of model")
+        cvs = cross_validate(model,preprocessor.transform(X_test),y_test,cv=sfold,scoring=metrics,n_jobs=-1)
+        #insert stratified cross validate func and log the mean scores.
+        
+        scores =  {"recall_score":cvs["test_recall_score"].mean(),"f1_score":cvs["test_f1_score"].mean()}
+        score_f1 = scores["f1_score"]
+        logging.info(f"test f1 score was {score_f1}")
+        
+        if score_f1 > 0.5:
+
+            model.fit(X_train_tr,y_train)
+            joblib.dump(model,f"{model_path}")
+            joblib.dump(preprocessor,f"{preprocessor_path}")
+       
+            with mlflow.start_run():
+
+                mlflow.log_metrics(scores)
+                mlflow.log_params(model.get_params())
+
+                signature = infer_signature(X_test_tr, model.predict(X_test_tr))
+                model_uri = mlflow.get_artifact_uri(self.mlflow_model)
+
+        # Logging model in mlflow           
+            model_info = mlflow.sklearn.log_model(
+                sk_model=model,
+                artifact_path="model",
+                input_example=X_train_tr,
+                registered_model_name=self.mlflow_model,
+                 )
+            logging.info("model trained and logged in mlflow")
+            
+            latest_versions = mlflow_client.get_latest_versions(self.mlflow_model, stages=["None"])
+            latest_model_version = latest_versions[0].version
+            mlflow_client.transition_model_version_stage(self.mlflow_model,
+                                                         latest_model_version,
+                                                         "Staging",archive_existing_versions=True)
+
+            logging.info(f"model {self.mlflow_model} with version {latest_model_version} transitioned to staging")
+         
+                
+        else:
+            logging.info(f"new model did not clear threshold with validation test f1 score of {score_f1}")
+        
+    
+       
+
+
+
+
 
 
 
@@ -163,7 +279,15 @@ class MLflow(Trainer):
         return best_params,best_metrics
     
     
+def main():
 
-    
-    
-   
+    tr = Trainer()
+    tr.save_model()
+    print("new model registered and saved locally")
+    logging.info("new model registered and saved locally")
+
+
+
+if __name__ == "__main__":
+    main()
+

@@ -2,13 +2,21 @@
 import sys
 sys.path.append("../")
 from ingest_data import *
-from src.utils import *
+from utils import *
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import ClassImbalance,FeatureLabelCorrelation,FeatureFeatureCorrelation
 import great_expectations as ge     
+import logging
 
 
-input_train_df = load_raw_data(raw_data_path)
+logger_ingestion = logging.getLogger("data_pipeline_logger")
+logging.basicConfig(filename = f'{home_dir}/logs/data_pipeline.log',
+                    level = logging.INFO,
+                    format = '%(asctime)s:%(levelname)s:%(message)s')
+
+
+
+
 conf = load_config()
 target = conf["target"]
 target = ' '.join(target)
@@ -23,34 +31,37 @@ def check_path_exists(paths):
 
 
     
-def validate_data():
+def validate_data(df):
 
-    
-    # schema checks
   
     
     # correlation checks
 
-    dataset = Dataset(input_train_df, label=target)
-    feature_label_check = FeatureLabelCorrelation().add_condition_feature_pps_less_than(0.9)
-    neg_class,pos_class = input_train_df[target].value_counts(normalize=True)
-
-
-    if  not feature_label_check.run(dataset=dataset):
-        print("one or more features having correlation higher than threshold")
-        return True
-
-
-    elif pos_class/neg_class > 0.4:
-        print("target class relationship has changed significantly")
+    dataset = Dataset(df, label=target,cat_features=conf["cat_features_raw"])
+    feature_label_check = FeatureLabelCorrelation().add_condition_feature_pps_less_than(0.8)
+    result = feature_label_check.run(dataset)
+    if not result:
+        logging.warning("feature {a} is highly correlated with label")
 
         return True
+
+
+            
+    c_imb = ClassImbalance().add_condition_class_ratio_less_than(0.3)
+    
+    if not c_imb.run(dataset=dataset):
+         logging.warning("target class is imbalanced")
+
+         return True
+
     
 def main():
-    try:
-        validate_data()
-    except:
+    
+    raw_data = load_raw_data(raw_data_path)
+    if  validate_data(df=raw_data):
+  
         print("data validation failed")
+        logging.info("data validation failed")
 
     else:
         paths = [train_path,test_path,ref_path]
@@ -58,6 +69,9 @@ def main():
       
     #logging splitting source data to model trianing, validation and monitoring reference datasets
         data_split(raw_data_path,paths)
+        logging.info("data has been succesfully split,prod data is between '2017-01-01'and '2017-06-20'")
+
+        
     #logging data splitted to training, testing and monitoring sets
 
     
