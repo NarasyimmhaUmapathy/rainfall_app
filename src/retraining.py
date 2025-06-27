@@ -15,6 +15,7 @@ from sklearn.ensemble import AdaBoostClassifier
 import logging
 from datetime import datetime
 import joblib
+from functools import lru_cache
 
 from mlflow.utils.mlflow_tags import MLFLOW_PARENT_RUN_ID
 
@@ -35,11 +36,12 @@ mlflow_client = mlflow.tracking.MlflowClient(
 tracking_uri=tracking_server_url)
 name = "test_monitoring"
 #experiment_details = mlflow.get_experiment_by_name("australian_weather")
-id = mlflow_object.get_or_create_experiment("australian_weather")
+id = mlflow_object.get_or_create_experiment("rainfall_prediction")
 
 
 
-def retrain_model(data:pd.DataFrame):
+def retrain_model(data:pd.DataFrame,drift_share:float):
+
 
     date_time = datetime.today().strftime('%Y-%m-%d')
     model_name = evaluator.registered_model
@@ -50,14 +52,13 @@ def retrain_model(data:pd.DataFrame):
         logging.warning(f"model with name {model_name} could not be loaded")
         
     #model_current = joblib.load(f"{model_path}")
-    logging.info(f"evaluating model with cross validation ")
 
 
-    f1_score,recall_score = evaluator.evaluate_model(model_current,data)
 
-    with mlflow.start_run(experiment_id=id, run_name=f'retraining_{date_time}'):           
+    with mlflow.start_run(experiment_id=id, run_name=f'model retraining with share of drifted features {drift_share}, runtime:{date_time}'):           
 
         f1_score,recall_score = evaluator.evaluate_model(model_current,data)
+        print(f"evaluated f1 score is {f1_score}")
         logging.info(f"test validation score is {f1_score}]")
 
         metrics = {"f1":f1_score,"recall":recall_score}
@@ -65,7 +66,7 @@ def retrain_model(data:pd.DataFrame):
 
         if f1_score > 0.5:               
 
-            evaluator.update_model(model_current,prod_processed_path)
+            evaluator.update_model(model_current,prod_path)
             latest_versions = mlflow_client.get_latest_versions(model_name, stages=["None"])
             latest_model_version = latest_versions[0].version
             mlflow_client.transition_model_version_stage(evaluator.registered_model,
@@ -75,7 +76,7 @@ def retrain_model(data:pd.DataFrame):
             return True     
         
         else:
-            logging.info("retrained model did not clear threshold score")
+            logging.info(f"retrained model did not clear threshold score with evaluated f1 score of {f1_score}")
 
             return False
     
@@ -124,6 +125,7 @@ def parameter_tuning(run_name):
     
     current_model = evaluator.current_model
     random_state = evaluator.random_state
+    
 
     mlflow_client = mlflow.tracking.MlflowClient(
     tracking_uri=tracking_server_url)
@@ -154,21 +156,52 @@ def parameter_tuning(run_name):
 
     #run some test, if the model passes, promote to production
 
+@lru_cache
+def monitoring_data_preparation(interval_range:int):
+
+    ### prepares reference and returns sliced bimonthly current data for evidently reports ###
+    
+    current_data = pd.read_csv(f"{prod_path}")
+    ref_data = pd.read_csv(f"{ref_path}")
+    model = joblib.load(f"{model_path}")
+    preprocessor = joblib.load(f"{preprocessor_path}")
+
+    pred_values = pd.Series(model.predict(preprocessor.transform(current_data)))
+
+    #pred_values_binary = pred_values.apply(lambda x: 1 if x == "Yes" else 0)
+
+    
+    current_data["prediction"] = pred_values
+    current_data["target"] = current_data["Target_encoded"]
+
+
+    return ref_data,current_data
+    ### returns reference and current data ###
+
 
 
 ### main retraining function on feature drift ###
-def main():
+def main(interval_range:int):
 
-    report = feature_metrics(15)[1]
+    ref_data,current_data = monitoring_data_preparation(interval_range)
+    model = joblib.load(f"{model_path}")
+
+    
+
+    report = feature_metrics(interval_range,current_data)[1]
     
     dataset_drift = report.as_dict()["metrics"][0]["result"]["dataset_drift"]
     drift_share = report.as_dict()["metrics"][0]["result"]["share_of_drifted_columns"]
 
+    print(f"drift share is {drift_share},drift status is {dataset_drift}")
+
     if dataset_drift:
         logging.warning(f"dataset drift detected,{drift_share*100}% of total columns have drifted")
-        print("dada")
+        print("dataset drift detected")
 
-        if retrain_model():
+
+
+        if retrain_model(current_data,drift_share=drift_share):
             logging.info("Model retraining completed")
             print("model retraining completed")
 
@@ -176,11 +209,11 @@ def main():
             logging.warning("Model retraining failed!")
             print("model retraining failed")
     else:
-        print(f"drift share of features was {drift_share},no retraining need")
+        print(f"drift share of features was {drift_share},no retraining needed")
     
 
 
    
 if "__main__" == __name__:
 
-    main()
+    main(1)

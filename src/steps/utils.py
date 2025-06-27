@@ -36,7 +36,7 @@ model_path = f'{home_dir}/{model_dir}'
 preprocessor_path = f'{home_dir}/models/preprocessor.pkl'
 reports_path = f'{home_dir}/{reports_dir}'
 
-
+      
 
 
 

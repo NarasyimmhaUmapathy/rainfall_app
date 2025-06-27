@@ -55,7 +55,7 @@ def return_mapping(target:str,prediction:str):
     return column_mapping
 
 
-def feature_metrics(num_days:int):
+def feature_metrics(num_days:int,data):
 
     column_mapping = return_mapping("target","prediction")
 
@@ -65,13 +65,13 @@ def feature_metrics(num_days:int):
 
     #column_mapping.datetime = "Date"
     data_drift_report = Report(metrics=[
-                                    DataDriftPreset(num_stattest="jensenshannon",num_stattest_threshold=0.5,cat_stattest="chisquare",drift_share=0.35),
+                                    DataDriftPreset(num_stattest="jensenshannon",num_stattest_threshold=0.5,cat_stattest="chisquare",drift_share=0.01),
                                     ColumnDriftMetric(column_name="target",stattest_threshold=0.2),
                                     
                                     ]
 )
     #data_drift_report.run(reference_data=ref_data, current_data=prod_data[step_size * batch_size : (step_size + 1) * batch_size],column_mapping=column_mapping)
-    data_drift_report.run(reference_data=ref_data, current_data=prod_data.iloc[14 * num_days: 14 * (num_days + 1), :],column_mapping=column_mapping)
+    data_drift_report.run(reference_data=ref_data, current_data=data.iloc[14 * num_days: 14 * (num_days + 1), :],column_mapping=column_mapping)
     report_path = f'{home_dir}/reports/drift_report.html'
     data_drift_report.save_html(report_path)
     return report_path,data_drift_report
