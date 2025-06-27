@@ -53,13 +53,22 @@ class Model(Utils):
         assert type(model) == Pipeline
         return model
 
-    
     def update_model(self,model,prod_dir):
         date_time = datetime.today().strftime('%Y-%m-%d')
+        prod_data = pd.read_csv(f"{prod_dir}",index_col=0)
+        X_prod = prod_data.drop("Target_encoded",axis=1)
+        y_prod = prod_data["Target_encoded"]
 
-        X_prod,y_prod = self.load_data(prod_dir)
-       # model = mlflow.sklearn.load_model(f"models:/test_monitoring/Staging")
-        model.fit(X_prod,y_prod)
+        preprocessor = joblib.load(f"{preprocessor_path}")
+
+
+        preprocessor.fit(X_prod,y_prod)
+
+
+
+        model.fit(preprocessor.transform(X_prod),y_prod)
+
+        
         logging.info("updating local version of model in models dir from predict.py module")
 
         joblib.dump(model,f"./models/{self.saved_model}_{date_time}.pkl")
@@ -95,15 +104,17 @@ class Model(Utils):
         return model_info.model_uri
     
     
-    @staticmethod
-    def evaluate_model(X_test,y_test,model,data):
-       # X_test,y_test = self.feature_target_separator(data)
-        #sfold = StratifiedKFold(n_splits=num_splits,random_state=self.random_state,shuffle=True)
+    def evaluate_model(self,model,data):
+        X_test,y_test = self.feature_target_separator(data)
+        sfold = StratifiedKFold(10,random_state=self.random_state,shuffle=True)
         metrics = {"f1_score":f1_scores,"recall_score":recall_scores}
-        f1 = f1_score(y_test,model.predict(X_test))
+
+        preprocessor = joblib.load(f"{preprocessor_path}")
+        cvs = cross_validate(model,preprocessor.transform(X_test)
+                     ,y_test,cv=sfold,scoring=metrics,n_jobs=-1)
         
       
-        return f1,recall_scores
+        return cvs["test_f1_score"].mean(),cvs["test_recall_score"].mean()
     
 
     

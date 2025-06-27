@@ -140,7 +140,7 @@ def data_split(input_train_data_path,output_paths):
     logging.info("pre processing production data for model predictions with column transformer")
     prod_data_tr = preprocessor.transform(prod_data)
     prod_data_preprocessed = pd.DataFrame(prod_data_tr,columns=cols)
-    prod_data_preprocessed["target"] = prod_data["Target_encoded"]
+    prod_data_preprocessed["Target_encoded"] = prod_data["Target_encoded"]
 
     
 
@@ -195,7 +195,7 @@ def impute_encode(df):
     df["Location_encoded"] = pd.Series(array.flatten())
     df["Target_encoded"] = pd.Series(array_target.flatten())
 
-    df.drop(["Location","RainTomorrow"],axis=1,inplace=True)
+    df.drop("RainTomorrow",axis=1,inplace=True)
 
     logging.info(f"saving location encoder in {home_dir}/models/")
     joblib.dump(target,f"{home_dir}/models/location_encoder.pkl")

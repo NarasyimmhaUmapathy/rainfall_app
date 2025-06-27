@@ -29,6 +29,8 @@ from abc import ABC,abstractmethod
 from steps.utils import *
 import logging
 
+
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename=f'{home_dir}/logs/training_pipeline.log', encoding='utf-8', level=logging.INFO,
                     format='%(asctime)s %(filename)s->%(funcName)s():%(lineno)s %(message)s ')
@@ -51,6 +53,7 @@ class Utils():
           self.categorical_features = self.config['cat_features']
           self.numerical_features = self.config['num_features']
           self.target = self.config['target_encoded']
+          self.model_features = self.numerical_features + self.categorical_features + self.target
           self.test_ratio = self.config["train_test_ratio"]
           self.random_state = self.config["random_state"]
 
@@ -60,6 +63,9 @@ class Utils():
             return yaml.safe_load(config_file.read())
 
     def feature_target_separator(self,data):
+
+        if type(data) == np.ndarray:
+            data = pd.DataFrame(data,columns=self.model_features)
         X = data.drop(self.target,axis=1)
         y = data[self.target]
         return X,y
