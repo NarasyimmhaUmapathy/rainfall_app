@@ -25,13 +25,14 @@ f1_scores = make_scorer(f1_score)
 avg_prec_metric = make_scorer(average_precision_score)
 recall_metric = make_scorer(recall_score)
 
+conf = load_config()
 
 evaluator = Model()
 mlflow_object = MLflow()
 tracking_server_url=mlflow.set_tracking_uri(uri="http://127.0.0.1:5000")
 mlflow_client = mlflow.tracking.MlflowClient(
 tracking_uri=tracking_server_url)
-name = "test_monitoring"
+name = conf["model"]["registered_model"]
 #experiment_details = mlflow.get_experiment_by_name("australian_weather")
 id = mlflow_object.get_or_create_experiment("australian_weather")
 
@@ -47,8 +48,8 @@ def retrain_model(current_model_name,new_model_name,cv_splits:int):
     logging.info(f"evaluating model with cross validation")
 
     eval_scores = evaluator.evaluate_model(model_current,test_path,cv_splits)
-    if eval_scores[2] > 0.5: #load from config
-        evaluator.update_model(model_current,train_path,new_model_name)
+    if eval_scores[0] > 0.5: #load from config
+        evaluator.update_model(model_current,test_path)
         return True
         
     else:
@@ -58,7 +59,7 @@ def retrain_model(current_model_name,new_model_name,cv_splits:int):
 def objective(trial):
         
         #model = trainer.create_pipeline()
-        model = evaluator.current_model
+        model = mlflow.sklearn.load_model(f"models:/{evaluator.registered_model}/Staging")
         X,y = evaluator.load_data(f"{train_path}")
         X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.33, random_state=evaluator.random_state,stratify=y)
@@ -98,7 +99,7 @@ def objective(trial):
 def parameter_tuning(run_name):
 
     
-    current_model = evaluator.current_model
+    
     random_state = evaluator.random_state
     #tracking_server_url=mlflow.set_tracking_uri(uri="http://127.0.0.1:5000")
 
@@ -134,26 +135,24 @@ def parameter_tuning(run_name):
 
 
 
-def main(updated_model_name):
- pass
-
+def main():
 
     #retrain model, validate and updte if validation passes
-  #  if retrain_model("test_monitoring",updated_model_name,5):
+    #if retrain_model("weather_forecast_model","retrained_model",10):
+
     # tune and update model params with best params
-   #     logging.info("performing hyperparameter tuning")
-    #    best_params,metrics = parameter_tuning()
-     #   evaluator.update_params(best_params,"models",updated_model_name)
-      #  logging.info("updated model parameters in mlflow")
+      logging.info("performing hyperparameter tuning")
+      best_params,metrics = parameter_tuning("model_param_tuning_optuna")
+      evaluator.update_params(best_params,"models","weather_forecast_model")
+      logging.info("updated model parameters in mlflow")
 
    
 if "__main__" == __name__:
-    trials = parameter_tuning("run with changed training data according to time")
-    print(trials)
+   # trials = parameter_tuning("run with changed training data according to time")
+    #print(trials)
    # test_f1_score = evaluator.evaluate_model(evaluator.current_model,test_path,5)
    # print(np.mean(test_f1_score))
-    #retrain_model("test_monitoring","retrained_model",10)
-
+  main()
 
 
 

@@ -22,6 +22,7 @@ dependencies = [
     "docker==7.1.0",
     "et-xmlfile==2.0.0",
     "evidently>=0.4.36",
+    "fastapi>=0.116.1",
     "flask==3.1.0",
     "fonttools==4.56.0",
     "gitdb==4.0.12",

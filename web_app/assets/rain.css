@@ -1,0 +1,20 @@
+.rain-container {
+  position: absolute;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.drop {
+  position: absolute;
+  width: 2px;
+  height: 10px;
+  background: rgba(0, 0, 255, 0.5);
+  bottom: 100%;
+  animation: fall 0.8s linear infinite;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(120px);
+  }
+}

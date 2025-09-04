@@ -12,6 +12,8 @@ sys.path.append("../")
 import site
 import joblib
 from sklearn.metrics import accuracy_score, classification_report, roc_auc_score,matthews_corrcoef
+from sklearn.metrics import ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
 #from models import random
 import mlflow,yaml
 from pathlib import Path 
@@ -45,6 +47,8 @@ class Model(Utils):
         super().__init__()
         self.saved_model = self.config["model"]["saved_model"]
         self.registered_model = self.config["model"]["registered_model"]
+        
+        
 
 
     def return_model(self) -> Pipeline:
@@ -54,19 +58,27 @@ class Model(Utils):
         return model
 
     def update_model(self,model,prod_dir):
+
+        assert prod_dir != train_path
+
         date_time = datetime.today().strftime('%Y-%m-%d')
         prod_data = pd.read_csv(f"{prod_dir}",index_col=0)
         X_prod = prod_data.drop("Target_encoded",axis=1)
         y_prod = prod_data["Target_encoded"]
+
+        
 
         preprocessor = joblib.load(f"{preprocessor_path}")
 
 
         preprocessor.fit(X_prod,y_prod)
 
+        print("data fitted with preprocessor")
 
 
         model.fit(preprocessor.transform(X_prod),y_prod)
+
+        print("model updated with prod data")
 
         
         logging.info("updating local version of model in models dir from predict.py module")
@@ -76,7 +88,7 @@ class Model(Utils):
 
         mlflow.sklearn.log_model(
       sk_model=model,
-      input_example=X_prod.fillna(0),
+      input_example=preprocessor.transform(X_prod),
       artifact_path="models",
       registered_model_name=self.registered_model
         )
@@ -104,15 +116,30 @@ class Model(Utils):
         return model_info.model_uri
     
     
-    def evaluate_model(self,model,data):
-        X_test,y_test = self.feature_target_separator(data)
-        sfold = StratifiedKFold(10,random_state=self.random_state,shuffle=True)
+    def evaluate_model(self,model,data_path,cv_splits:int):
+
+        X_test,y_test = self.load_data(data_path)
+
+        
+
+        sfold = StratifiedKFold(cv_splits,random_state=self.random_state,shuffle=True)
         metrics = {"f1_score":f1_scores,"recall_score":recall_scores}
 
         preprocessor = joblib.load(f"{preprocessor_path}")
-        cvs = cross_validate(model,preprocessor.transform(X_test)
+        conf = load_config()
+        cols = conf["num_features"] + conf["cat_features"] 
+        cvs = cross_validate(model,preprocessor.transform(X_test[cols])
                      ,y_test,cv=sfold,scoring=metrics,n_jobs=-1)
         
+        preds = model.predict(preprocessor.transform(X_test[cols]))
+        ConfusionMatrixDisplay.from_predictions(
+        y_test, preds)
+
+        date_time = datetime.today().strftime('%Y-%m-%d')
+
+        plt.savefig(f"{home_dir}/reports/confusion_matrix_{date_time}.png")
+
+
       
         return cvs["test_f1_score"].mean(),cvs["test_recall_score"].mean()
     

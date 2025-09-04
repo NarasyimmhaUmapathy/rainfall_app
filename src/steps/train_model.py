@@ -17,8 +17,7 @@ from sklearn.model_selection import StratifiedKFold,cross_validate
 
 from sklearn.metrics import f1_score,matthews_corrcoef,roc_auc_score,make_scorer,recall_score
 import pandas as pd
-import category_encoders as ce
-import optuna
+#import optuna
 from mlflow.tracking import MlflowClient
 from mlflow.models import infer_signature
 
@@ -30,9 +29,8 @@ from steps.utils import *
 import logging
 
 
-
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename=f'{home_dir}/logs/training_pipeline.log', encoding='utf-8', level=logging.INFO,
+logging.basicConfig(filename=f"{home_dir}/logs/training_pipeline.log", filemode="a",encoding='utf-8', level=logging.INFO,
                     format='%(asctime)s %(filename)s->%(funcName)s():%(lineno)s %(message)s ')
 
 
@@ -122,12 +120,14 @@ class Trainer(Utils):
         ("encoder", TargetEncoder())
             ]
             )
+        
+      
 
         preprocessor = ColumnTransformer(
             transformers=[
-        ("num", numeric_transformer, self.config["num_features"]),
-        ("cat", categorical_transformer, self.config["cat_features"]),
-        ]   
+        ("numericalcols", numeric_transformer, self.config["num_features"]),
+        ("categoricalcols", categorical_transformer, self.config["cat_features"])
+        ] ,remainder='drop'
             )
 
         model_map = {
@@ -138,7 +138,7 @@ class Trainer(Utils):
         model_class = model_map[self.sklearn_model]
         model = model_class(**self.model_params)  
 
-        model = HistGradientBoostingClassifier()
+        model = AdaBoostClassifier(algorithm="SAMME")
         
 
         return preprocessor,model
@@ -159,11 +159,15 @@ class Trainer(Utils):
 
         train_data = pd.read_csv(f'{train_path}',index_col=0)
                                  
-        test_data = pd.read_csv(f'{train_path}',index_col=0)
+        test_data = pd.read_csv(f'{test_path}',index_col=0)
 
-        X_train = train_data.drop(["Date","month","day","year","Target_encoded"],axis=1)
+        X_train = train_data.drop(["Date","day","Target_encoded","Location"],axis=1)
         y_train = train_data[self.target]
+
+        logging.info(f"fitting pipeline to train data in {train_path}")
+        
         preprocessor.fit(X_train,y_train)
+
 
         X_train_tr = preprocessor.transform(X_train)
 
@@ -176,18 +180,25 @@ class Trainer(Utils):
         recall_metric = make_scorer(recall_score)
 
 
+
+
         model.fit(X_train_tr,y_train)
+
+       
+
+    
 
         metrics = { "recall_score": recall_metric,"f1_score":f1_metric}
 
         sfold = StratifiedKFold(n_splits=10,random_state=self.random_state,shuffle=True)
         logging.info("performing cross validation of model")
-        cvs = cross_validate(model,preprocessor.transform(X_test),y_test,cv=sfold,scoring=metrics,n_jobs=-1)
+        cvs = cross_validate(model,X_test_tr,y_test,cv=sfold,scoring=metrics,n_jobs=-1)
         #insert stratified cross validate func and log the mean scores.
         
         scores =  {"recall_score":cvs["test_recall_score"].mean(),"f1_score":cvs["test_f1_score"].mean()}
         score_f1 = scores["f1_score"]
         logging.info(f"test f1 score was {score_f1}")
+        print(score_f1)
         
         if score_f1 > 0.5:
 

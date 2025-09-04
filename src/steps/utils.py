@@ -1,5 +1,5 @@
 
-import yaml,os
+import yaml,os,joblib
 from pathlib import Path
 import pandas as pd
 from sklearn.metrics import make_scorer,recall_score,f1_score,matthews_corrcoef
@@ -11,7 +11,7 @@ test_file = 'model_validation_data'
 ref_file = 'monitoring_reference_data'
 
 
-home_dir = 'C:/daten/numapathy/Dokumente/networksecurity_project/oct24_bmlops_int_weather'
+home_dir = 'C:/Users/naras/OneDrive/Documents/weather_forecast_project/oct24_bmlops_int_weather'
 raw_data_dir = 'src/input_data/training/weatherAUS.csv'
 train_dir = 'src/output_data/train/model_training.csv'
 test_dir = 'src/output_data/test/model_validation_data.csv'
@@ -34,6 +34,8 @@ prod_processed_path = f'{home_dir}/{prod_predictions_dir}'
 conf_path = f'{home_dir}/{conf_dir}'
 model_path = f'{home_dir}/{model_dir}'
 preprocessor_path = f'{home_dir}/models/preprocessor.pkl'
+location_encoder_path = f'{home_dir}/models/location_encoder.pkl'
+
 reports_path = f'{home_dir}/{reports_dir}'
 
       
@@ -45,8 +47,4 @@ def load_config():
         with open(conf_path, 'r') as config_file:
             return yaml.safe_load(config_file.read())
 
-
-
-
-   
-
+model = joblib.load(model_path)

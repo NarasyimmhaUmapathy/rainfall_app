@@ -5,8 +5,13 @@ from ingest_data import *
 from utils import *
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import ClassImbalance,FeatureLabelCorrelation,FeatureFeatureCorrelation
-import great_expectations as ge     
 import logging
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+
+
+
 
 
 logger_ingestion = logging.getLogger("data_pipeline_logger")
@@ -56,6 +61,7 @@ def validate_data(df):
 
     
 def main():
+
     
     raw_data = load_raw_data(raw_data_path)
     if  validate_data(df=raw_data):
@@ -63,13 +69,13 @@ def main():
         print("data validation failed")
         logging.info("data validation failed")
 
-    else:
+    else: 
         paths = [train_path,test_path,ref_path]
 
       
     #logging splitting source data to model trianing, validation and monitoring reference datasets
-        data_split(raw_data_path,paths)
-        logging.info("data has been succesfully split,prod data is between '2017-01-01'and '2017-06-20'")
+    data_split(raw_data_path,paths)
+    logging.info("data has been succesfully split,prod data is between '2017-01-01'and '2017-06-20'")
 
         
     #logging data splitted to training, testing and monitoring sets
@@ -84,4 +90,12 @@ def main():
 
 
 if "__main__" == __name__:
-        main()
+    main()
+    #paths = [train_path,test_path,ref_path]
+    #data_split(raw_data_path,paths)
+
+   # df_raw = load_raw_data(raw_data_path)
+   
+
+
+        

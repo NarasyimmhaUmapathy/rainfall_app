@@ -4,14 +4,17 @@
 
 # this is the purpose of the main.py file, the streamlit app will be in the app.py file in a dev branch.
 from steps.train_model import MLflow,Trainer
-from steps.ingest_data import *
 from steps.predict_model import Model
-from monitor import feature_metrics
+from steps.utils import *
+from monitoring.monitor import feature_metrics
 import mlflow
 from mlflow.tracking import MlflowClient
 from mlflow.models import infer_signature
 from sklearn.metrics import f1_score,matthews_corrcoef,roc_auc_score,make_scorer,average_precision_score,recall_score
 from sklearn.ensemble import AdaBoostClassifier
+from sklearn.model_selection import train_test_split
+
+
 import logging
 from datetime import datetime
 import joblib
@@ -20,7 +23,8 @@ from functools import lru_cache
 from mlflow.utils.mlflow_tags import MLFLOW_PARENT_RUN_ID
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename=f'{home_dir}/logs/retraining_pipeline.log', encoding='utf-8', level=logging.INFO,format='%(asctime)s %(message)s')
+logging.basicConfig(filename=f'{home_dir}/logs/retraining_pipeline.log', 
+                    encoding='utf-8', level=logging.INFO,format='%(asctime)s %(message)s')
 
 
 matthews_scores = make_scorer(matthews_corrcoef)
@@ -40,7 +44,7 @@ id = mlflow_object.get_or_create_experiment("rainfall_prediction")
 
 
 
-def retrain_model(data:pd.DataFrame,drift_share:float):
+def retrain_model(data_path:str,drift_share:float):
 
 
     date_time = datetime.today().strftime('%Y-%m-%d')
@@ -57,12 +61,13 @@ def retrain_model(data:pd.DataFrame,drift_share:float):
 
     with mlflow.start_run(experiment_id=id, run_name=f'model retraining with share of drifted features {drift_share}, runtime:{date_time}'):           
 
-        f1_score,recall_score = evaluator.evaluate_model(model_current,data)
+        f1_score,recall_score = evaluator.evaluate_model(model_current,data_path,10)
         print(f"evaluated f1 score is {f1_score}")
         logging.info(f"test validation score is {f1_score}]")
 
         metrics = {"f1":f1_score,"recall":recall_score}
         mlflow.log_metrics(metrics)
+        mlflow.log_artifact(f"{home_dir}/reports/confusion_matrix_{date_time}.png")
 
         if f1_score > 0.5:               
 
@@ -186,9 +191,10 @@ def main(interval_range:int):
     ref_data,current_data = monitoring_data_preparation(interval_range)
     model = joblib.load(f"{model_path}")
 
-    
+    print("producing drift report")
+    logging.info("producing drift report")
 
-    report = feature_metrics(interval_range,current_data)[1]
+    report = feature_metrics(interval_range)[1]
     
     dataset_drift = report.as_dict()["metrics"][0]["result"]["dataset_drift"]
     drift_share = report.as_dict()["metrics"][0]["result"]["share_of_drifted_columns"]
@@ -201,7 +207,7 @@ def main(interval_range:int):
 
 
 
-        if retrain_model(current_data,drift_share=drift_share):
+        if retrain_model(test_path,drift_share=drift_share):
             logging.info("Model retraining completed")
             print("model retraining completed")
 
