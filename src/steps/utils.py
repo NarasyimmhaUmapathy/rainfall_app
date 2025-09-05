@@ -46,5 +46,3 @@ def load_config():
         
         with open(conf_path, 'r') as config_file:
             return yaml.safe_load(config_file.read())
-
-model = joblib.load(model_path)
