@@ -10,8 +10,8 @@ train_file = 'model_training'
 test_file = 'model_validation_data'
 ref_file = 'monitoring_reference_data'
 
-
-home_dir = 'C:/Users/naras/OneDrive/Documents/weather_forecast_project/oct24_bmlops_int_weather'
+#home_dir = 'C:/Users/naras/OneDrive/Documents/weather_forecast_project/oct24_bmlops_int_weather'
+home_dir = 'oct24_bmlops_int_weather'
 raw_data_dir = 'src/input_data/training/weatherAUS.csv'
 train_dir = 'src/output_data/train/model_training.csv'
 test_dir = 'src/output_data/test/model_validation_data.csv'
@@ -46,3 +46,6 @@ def load_config():
         
         with open(conf_path, 'r') as config_file:
             return yaml.safe_load(config_file.read())
+
+conf = load_config()
+print(conf["target"])

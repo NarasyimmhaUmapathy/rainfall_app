@@ -203,6 +203,7 @@ class Trainer(Utils):
         if score_f1 > 0.5:
 
             model.fit(X_train_tr,y_train)
+            #push to mlflow first and pull back with the latest version
             joblib.dump(model,f"{model_path}")
             joblib.dump(preprocessor,f"{preprocessor_path}")
        
