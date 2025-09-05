@@ -7,7 +7,6 @@ bidict==0.23.1
 blinker==1.9.0
 Brotli==1.1.0
 cachetools==5.5.2
-category_encoders==2.7.0
 certifi==2025.1.31
 cffi==1.17.1
 charset-normalizer==3.4.1
@@ -16,7 +15,7 @@ cloudpickle==3.1.1
 colorama==0.4.6
 colorlog==6.9.0
 ConfigArgParse==1.7.1
-contourpy==1.3.1
+contourpy==1.3.0
 cycler==0.12.1
 dash==2.18.2
 dash-bootstrap-components==1.7.1
@@ -66,17 +65,16 @@ joblib==1.4.2
 jsonschema==4.25.1
 jsonschema-specifications==2025.4.1
 jupyter_core==5.8.1
-kiwisolver==1.4.8
+kiwisolver==1.4.7
 litestar==2.17.0
 litestar-htmx==0.5.0
-llvmlite==0.44.0
-locust==2.39.1
-locust-cloud==1.26.3
+llvmlite==0.43.0
+
 Mako==1.3.9
 Markdown==3.7
-markdown-it-py==4.0.0
+markdown-it-py==3.0.0
 MarkupSafe==3.0.2
-matplotlib==3.10.1
+matplotlib==3.9.4
 mdurl==0.1.2
 mlflow==2.20.4
 mlflow-skinny==2.20.4
@@ -89,7 +87,7 @@ narwhals==2.3.0
 nbformat==5.10.4
 nest-asyncio==1.6.0
 nltk==3.9.1
-numba==0.61.2
+numba==0.60.0
 numpy==1.26.4
 openpyxl==3.1.5
 opentelemetry-api==1.31.0
@@ -123,7 +121,7 @@ python-dotenv==1.1.1
 python-engineio==4.12.2
 python-socketio==5.13.0
 pytz==2025.1
-pywin32==311
+#pywin32==2.3.1
 PyYAML==6.0.2
 pyzmq==27.0.2
 referencing==0.36.2
