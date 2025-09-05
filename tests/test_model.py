@@ -4,11 +4,14 @@
 
 #predictions only of kind Yes or No 
 
+
+
 import sys ,pandas as pd,joblib
 sys.path.append("../")
 
+from src.steps.utils import model_path,test_path
+
 import requests,pandas as pd,numpy as np
-from oct24_bmlops_int_weather.src.utils import *
 
 model = joblib.load(f"{model_path}")
 

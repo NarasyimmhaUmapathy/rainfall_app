@@ -13,5 +13,7 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY ./ /code/web_app
 
+WORKDIR /code/web_app
 
-CMD ["fastapi", "run", "web_app/inference_pipeline.py", "--port", "80"]
+
+CMD ["fastapi", "run", "inference_pipeline.py", "--port", "80"]
