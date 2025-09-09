@@ -16,11 +16,11 @@ layout = html.Div(
         html.Div(
             className="hero",
             children=[
-                html.H1("Welcome 👋"),
+                html.H1("Welcome to the next day rain prediction app👋!"),
                 html.P(
                     "This is your landing page. Use the navbar to explore other pages."
                 ),
-                dcc.Link("Go to Analytics →", href="/analytics", className="btn")
+                dcc.Link("Go to the main rainfall dashboard →", href="/analytics", className="btn")
             ]
         ),
         html.Div(className="card-grid", children=[

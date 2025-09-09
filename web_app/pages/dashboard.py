@@ -72,7 +72,8 @@ fig.add_scattermapbox(
 
 fig.update_layout(
         mapbox=dict(
-            style="open-street-map",
+            style = 'carto-positron',
+            #style="open-street-map",
               # Rotate slightly
         ),
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
