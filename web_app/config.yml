@@ -1,0 +1,89 @@
+---
+random_state: 144
+directories:
+  home:
+    - C:/daten/numapathy/Dokumente/networksecurity_project/oct24_bmlops_int_weather/src
+  input_dirs:
+    train:
+      - input_data/training/weatherAUS.csv
+    test:
+      - input_data/validation/test_data.csv
+  output_dirs:
+    ref:
+      - output_data/ref/monitoring_reference_data.csv
+    test:
+      - output_data/features/model_validation_data.csv
+target:
+  - RainTomorrow
+target_encoded:
+  - Target_encoded
+cat_features:
+  - WindGustDir
+  - WindDir9am
+  - WindDir3pm
+  - RainToday
+  - Location_encoded
+cat_features_raw:
+  - WindGustDir
+  - WindDir9am
+  - WindDir3pm
+  - RainToday
+  - Location
+num_features:
+  - MinTemp
+  - MaxTemp
+  - Rainfall
+  - Evaporation
+  - Sunshine
+  - WindGustSpeed
+  - WindSpeed9am
+  - WindSpeed3pm
+  - Humidity9am
+  - Humidity3pm
+  - Pressure9am
+  - Pressure3pm
+  - Cloud9am
+  - Cloud3pm
+  - Temp9am
+  - Temp3pm
+  - month
+  - year
+
+drop_features:
+  - month
+  - day
+  - year
+  - Date
+  
+grid_params:
+  - alpha
+  - solver
+  - tol
+max_iter: 20000
+data:
+  train_path: data/train/train_data.csv
+  test_path: data/test/test_data.csv
+  ref_path: data/ref/ref_data.csv
+model:
+  model_name: HistGradientBoostingClassifier
+  saved_model: current_champion
+  registered_model: weather_forecast_model
+  challenger_name: AdaBoostClassifier
+  params:
+    learning_rate: 0.01
+    max_depth: 10
+  stage:
+    - Inital
+    - Staging
+    - Production
+experiment:
+  name: rainfall_prediction
+  store_path: steps/model.pkl
+scorer:
+  - f1_score
+  - precision_score
+  - recall_score
+train_test_ratio:
+  - 0.3
+drift_share:
+  - 0.25
