@@ -13,7 +13,7 @@ from evidently.metrics import DatasetDriftMetric
 from evidently.metrics import DatasetMissingValuesMetric
 from evidently.report import Report
 from evidently import ColumnMapping
-from src.steps.utils import *
+from utils import *
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import HistGradientBoostingClassifier
 
