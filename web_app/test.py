@@ -4,4 +4,4 @@ import os
 home = Path.home()
 cwd = Path.cwd()
 
-print(os.listdir)
+print(os.listdir())
