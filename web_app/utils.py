@@ -4,7 +4,6 @@ from pathlib import Path
 import pandas as pd
 from sklearn.metrics import make_scorer,recall_score,f1_score,matthews_corrcoef
 
-home_dir  = Path.cwd()
 
 train_file = 'model_training'
 test_file = 'model_validation_data'
@@ -12,7 +11,7 @@ ref_file = 'monitoring_reference_data'
 
 #home_dir = 'C:/Users/naras/OneDrive/Documents/weather_forecast_project/oct24_bmlops_int_weather'
 #home_dir = '/web_app'
-#home_dir = '/opt/render/project'
+home_dir = '/opt/render/project'
 raw_data_dir = 'src/input_data/training/weatherAUS.csv'
 train_dir = 'src/output_data/train/model_training.csv'
 test_dir = 'src/output_data/test/model_validation_data.csv'
