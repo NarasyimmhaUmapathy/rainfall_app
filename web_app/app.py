@@ -4,7 +4,7 @@ sys.path.append('../')
 import dash
 from dash import html,dcc
 
-from src.steps.utils import reports_path,home_dir
+from utils import reports_path,home_dir
 from flask import send_from_directory
 
 
@@ -94,3 +94,4 @@ app.layout = html.Div(
 server = app.server  # for WSGI/production
 if __name__ == "__main__":
     app.run_server(debug=True)
+    #app.run(host='127.0.0.1', port=8050)

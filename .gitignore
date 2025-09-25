@@ -5,6 +5,9 @@ __pycache__/
 # C extensions
 *.so
 
+# drift reports
+*.html
+
 # Distribution / packaging
 .Python
 env/
