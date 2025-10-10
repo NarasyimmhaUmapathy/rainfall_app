@@ -4,8 +4,7 @@ sys.path.append('../')
 import dash
 from dash import html,dcc
 
-#from src.steps.utils import reports_path,home_dir
-from utils import reports_path,home_dir
+from src.steps.utils import reports_path,home_dir
 from flask import send_from_directory
 
 
