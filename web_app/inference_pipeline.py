@@ -9,7 +9,7 @@ from fastapi import FastAPI
 import dash
 from dash import dcc, html
 
-from monitor import return_mapping,feature_metrics
+from monitoring.monitor import return_mapping,feature_metrics
 
 import plotly.express as px
 from starlette.middleware.wsgi import WSGIMiddleware
@@ -17,7 +17,7 @@ from starlette.middleware.wsgi import WSGIMiddleware
 
 
 from starlette.requests import Request
-from utils import *
+from src.steps.utils import *
 from dataclasses import dataclass,astuple
 import logging
 from typing import Callable, Text

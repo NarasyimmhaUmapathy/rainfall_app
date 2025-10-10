@@ -8,8 +8,8 @@ from dash import dash_table
 from dash import html, callback, Input, Output
 import glob
 
-from monitor import feature_metrics
-from utils import home_dir
+from monitoring.monitor import feature_metrics
+from src.steps.utils import home_dir
 
 REPORT_DIR = os.path.abspath(os.path.join(home_dir, "reports"))
 

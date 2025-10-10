@@ -5,7 +5,7 @@ FROM python:3.11
 WORKDIR /web_app
 
 # Copy the requirements file
-COPY ./web_app/requirements.txt /web_app//requirements.txt
+COPY ./web_app/requirements.txt /web_app/requirements.txt
 
 # Install the necessary Python packages
 RUN pip install --no-cache-dir -r /web_app/requirements.txt
@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r /web_app/requirements.txt
 
 
 # Expose the port the app runs on
-EXPOSE 8050
+EXPOSE 5000
 
 
 COPY ./web_app  /web_app
@@ -26,4 +26,4 @@ COPY ./models /web_app/models
 
 
 # Command to run the application
-CMD ["python", "app.py"]
+CMD ["python3","app.py"]

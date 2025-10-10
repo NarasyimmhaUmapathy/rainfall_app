@@ -1,8 +1,0 @@
-{
-    "name": "mnist-svm",
-    "implementation": "mlserver_sklearn.SKLearnModel",
-    "parameters": {
-        "uri": "./current_champion.pkl",
-        "version": "v0.1.0"
-    }
-}
